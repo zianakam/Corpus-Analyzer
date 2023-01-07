@@ -1,5 +1,4 @@
 from dash import Dash, dcc, html, Input, Output, State, dash_table
-from dash.exceptions import PreventUpdate
 from ast import In
 from datafarm import *
 
@@ -98,24 +97,10 @@ def parse_contents(contents, filename, date):
             df = pd.read_csv(
                 io.StringIO(decoded.decode('utf-8')))
             print('CSV found')
-            return html.Div(
-                children='CSV found.',
-                style={
-                    'color': 'white',
-                    'textAlign': 'center'
-                },
-            )
         elif 'xls' in filename:
             # Assume that the user uploaded an excel file
             df = pd.read_excel(io.BytesIO(decoded))
             print('XLS found')
-            return html.Div(
-                children='XLS found.',
-                style={
-                    'color': 'white',
-                    'textAlign': 'center'
-                },
-            )
         else:
             raise Exception()
     except Exception as e:
@@ -128,6 +113,29 @@ def parse_contents(contents, filename, date):
                 'textAlign': 'center'
             },
         )
+
+
+def display_file(contents, filename, date, df):
+    return html.Div([
+        html.H5(filename),
+        html.H6(datetime.datetime.fromtimestamp(date)),
+
+        dash_table.DataTable(
+            df.to_dict('records'),
+            [{'name': i, 'id': i} for i in df.columns]
+        ),
+
+        html.Hr(),  # horizontal line
+
+        # For debugging, display the raw contents provided by the web browser
+        html.Div('Raw Content'),
+        html.Pre(contents[0:200] + '...', style={
+            'whiteSpace': 'pre-wrap',
+            'wordBreak': 'break-all',
+            'padding': '10px'
+        })
+    ])
+
 
 # CALLBACKS
 

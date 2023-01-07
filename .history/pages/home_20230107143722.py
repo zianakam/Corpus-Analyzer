@@ -99,22 +99,18 @@ def parse_contents(contents, filename, date):
                 io.StringIO(decoded.decode('utf-8')))
             print('CSV found')
             return html.Div(
-                children='CSV found.',
                 style={
-                    'color': 'white',
-                    'textAlign': 'center'
-                },
+                    'display': 'none'
+                }
             )
         elif 'xls' in filename:
             # Assume that the user uploaded an excel file
             df = pd.read_excel(io.BytesIO(decoded))
             print('XLS found')
             return html.Div(
-                children='XLS found.',
                 style={
-                    'color': 'white',
-                    'textAlign': 'center'
-                },
+                    'display': 'none'
+                }
             )
         else:
             raise Exception()

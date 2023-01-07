@@ -1,5 +1,4 @@
 from dash import Dash, dcc, html, Input, Output, State, dash_table
-from dash.exceptions import PreventUpdate
 from ast import In
 from datafarm import *
 
@@ -98,24 +97,10 @@ def parse_contents(contents, filename, date):
             df = pd.read_csv(
                 io.StringIO(decoded.decode('utf-8')))
             print('CSV found')
-            return html.Div(
-                children='CSV found.',
-                style={
-                    'color': 'white',
-                    'textAlign': 'center'
-                },
-            )
         elif 'xls' in filename:
             # Assume that the user uploaded an excel file
             df = pd.read_excel(io.BytesIO(decoded))
             print('XLS found')
-            return html.Div(
-                children='XLS found.',
-                style={
-                    'color': 'white',
-                    'textAlign': 'center'
-                },
-            )
         else:
             raise Exception()
     except Exception as e:
@@ -135,12 +120,34 @@ def parse_contents(contents, filename, date):
               Input('upload-data', 'contents'),
               State('upload-data', 'filename'),
               State('upload-data', 'last_modified'))
-def update_output(list_of_contents, list_of_names, list_of_dates):
-    if list_of_contents is not None:
-        children = [
-            parse_contents(c, n, d) for c, n, d in
-            zip(list_of_contents, list_of_names, list_of_dates)]
-        return children
+def update_output(contents, filename, date):
+    content_type, content_string = contents.split(',')
+
+    decoded = base64.b64decode(content_string)
+    try:
+        if 'csv' in filename:
+            # Assume that the user uploaded a CSV file
+            df = pd.read_csv(
+                io.StringIO(decoded.decode('utf-8')))
+            print('CSV found')
+            raise PreventUpdate
+        elif 'xls' in filename:
+            # Assume that the user uploaded an excel file
+            df = pd.read_excel(io.BytesIO(decoded))
+            print('XLS found')
+            raise PreventUpdate
+        else:
+            raise Exception()
+    except Exception as e:
+        print('Exception')
+        print(e)
+        return html.Div(
+            children='There was an error processing this file. Please ensure you\'re uploading a .csv or .xls file.',
+            style={
+                'color': 'white',
+                'textAlign': 'center'
+            },
+        )
 
 
 @dash.callback(

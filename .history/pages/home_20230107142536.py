@@ -86,9 +86,13 @@ layout = html.Div(
     ]
 )
 
-# METHODS
+# CALLBACKS
 
-def parse_contents(contents, filename, date):
+@dash.callback(Output('output-data-upload', 'children'),
+              Input('upload-data', 'contents'),
+              State('upload-data', 'filename'),
+              State('upload-data', 'last_modified'))
+def update_output(contents, filename, date):
     content_type, content_string = contents.split(',')
 
     decoded = base64.b64decode(content_string)
@@ -98,24 +102,12 @@ def parse_contents(contents, filename, date):
             df = pd.read_csv(
                 io.StringIO(decoded.decode('utf-8')))
             print('CSV found')
-            return html.Div(
-                children='CSV found.',
-                style={
-                    'color': 'white',
-                    'textAlign': 'center'
-                },
-            )
+            raise PreventUpdate
         elif 'xls' in filename:
             # Assume that the user uploaded an excel file
             df = pd.read_excel(io.BytesIO(decoded))
             print('XLS found')
-            return html.Div(
-                children='XLS found.',
-                style={
-                    'color': 'white',
-                    'textAlign': 'center'
-                },
-            )
+            raise PreventUpdate
         else:
             raise Exception()
     except Exception as e:
@@ -128,19 +120,6 @@ def parse_contents(contents, filename, date):
                 'textAlign': 'center'
             },
         )
-
-# CALLBACKS
-
-@dash.callback(Output('output-data-upload', 'children'),
-              Input('upload-data', 'contents'),
-              State('upload-data', 'filename'),
-              State('upload-data', 'last_modified'))
-def update_output(list_of_contents, list_of_names, list_of_dates):
-    if list_of_contents is not None:
-        children = [
-            parse_contents(c, n, d) for c, n, d in
-            zip(list_of_contents, list_of_names, list_of_dates)]
-        return children
 
 
 @dash.callback(
