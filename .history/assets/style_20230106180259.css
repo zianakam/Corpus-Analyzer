@@ -37,7 +37,18 @@ ul {
 }
 
 #upload-data {
-    width: 30%;
+    max-width: 25%;
+    margin:0 auto; 
+    border-width: 1px;
+    border-style: dashed;
+    border-radius: 5px;
+    text-align: center;
+    color: white;
+    
+}
+
+#uploader-output {
+    width: 50%;
     margin:0 auto; 
     text-align: center; 
     color: white;
@@ -45,8 +56,8 @@ ul {
     border-style: dashed;
     border-radius: 5px;
     border-width: 1px;
-    height: 80px;
-    line-height: 80px;
+    height: 60px;
+    line-height: 60px;
 }
 
 .submit-button {

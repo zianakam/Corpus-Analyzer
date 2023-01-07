@@ -37,6 +37,17 @@ ul {
 }
 
 #upload-data {
+    max-width: 25%;
+    margin:0 auto; 
+    border-width: 1px;
+    border-style: dashed;
+    border-radius: 5px;
+    text-align: center;
+    color: white;
+    
+}
+
+#uploader-output {
     width: 30%;
     margin:0 auto; 
     text-align: center; 

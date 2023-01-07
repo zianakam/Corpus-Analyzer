@@ -133,8 +133,7 @@ def display_file(contents, filename, date, df):
         html.Div('Raw Content'),
         html.Pre(contents[0:200] + '...', style={
             'whiteSpace': 'pre-wrap',
-            'wordBreak': 'break-all',
-            'padding': '10px'
+            'wordBreak': 'break-all'
         })
     ])
 

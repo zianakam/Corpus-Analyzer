@@ -9,7 +9,8 @@ import dash_uploader as du
 
 # APP LAYOUT
 
-app = Dash(__name__, use_pages=True)
+app = dash.Dash(__name__)
+
 
 app.layout = html.Div([
 
@@ -26,6 +27,11 @@ app.layout = html.Div([
         dash.page_container
 
     ])
+
+# CALLBACKS
+
+
+
 
 # MAIN
 

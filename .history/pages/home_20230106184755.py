@@ -103,16 +103,13 @@ def parse_contents(contents, filename, date):
             df = pd.read_excel(io.BytesIO(decoded))
             print('XLS found')
             return display_file(contents, filename, date, df)
-        else:
-            raise Exception()
     except Exception as e:
         print('Exception')
         print(e)
         return html.Div(
-            children='There was an error processing this file. Please ensure you\'re uploading a .csv or .xls file.',
+            children='There was an error processing this file.',
             style={
                 'color': 'white',
-                'textAlign': 'center'
             },
         )
 
@@ -133,8 +130,7 @@ def display_file(contents, filename, date, df):
         html.Div('Raw Content'),
         html.Pre(contents[0:200] + '...', style={
             'whiteSpace': 'pre-wrap',
-            'wordBreak': 'break-all',
-            'padding': '10px'
+            'wordBreak': 'break-all'
         })
     ])
 

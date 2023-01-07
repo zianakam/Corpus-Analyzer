@@ -112,7 +112,6 @@ def parse_contents(contents, filename, date):
             children='There was an error processing this file. Please ensure you\'re uploading a .csv or .xls file.',
             style={
                 'color': 'white',
-                'textAlign': 'center'
             },
         )
 
@@ -133,8 +132,7 @@ def display_file(contents, filename, date, df):
         html.Div('Raw Content'),
         html.Pre(contents[0:200] + '...', style={
             'whiteSpace': 'pre-wrap',
-            'wordBreak': 'break-all',
-            'padding': '10px'
+            'wordBreak': 'break-all'
         })
     ])
 

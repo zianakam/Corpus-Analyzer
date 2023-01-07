@@ -9,7 +9,7 @@ import dash_uploader as du
 
 # APP LAYOUT
 
-app = Dash(__name__, use_pages=True)
+app = Dash(__name__)
 
 app.layout = html.Div([
 

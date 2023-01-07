@@ -9,7 +9,7 @@ import dash_uploader as du
 
 # APP LAYOUT
 
-app = Dash(__name__, use_pages=True)
+app = Dash(__name__)
 
 app.layout = html.Div([
 
@@ -22,8 +22,6 @@ app.layout = html.Div([
         ),
         
         dcc.Store(id='df-files', storage_type='local'), # saved until cleared/browser closed
-
-        dash.page_container
 
     ])
 

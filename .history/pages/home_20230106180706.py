@@ -1,4 +1,4 @@
-from dash import Dash, dcc, html, Input, Output, State, dash_table
+from dash import Dash, dcc, html, Input, Output, State, callback, dash_table
 from ast import In
 from datafarm import *
 
@@ -63,12 +63,11 @@ layout = html.Div(
         ),
 
         dcc.Upload(
-            id='upload-data',
+            id='uploader-output',
             children=html.Div([
                 'Drag and Drop or ',
                 html.A('Select Files')
             ]),
-            multiple=True
         ),
 
         dcc.Link(
@@ -80,7 +79,6 @@ layout = html.Div(
             href='/analysis'
         ),
 
-        html.Div(id='output-data-upload'),
 
     ]
 )
@@ -96,28 +94,15 @@ def parse_contents(contents, filename, date):
             # Assume that the user uploaded a CSV file
             df = pd.read_csv(
                 io.StringIO(decoded.decode('utf-8')))
-            print('CSV found')
-            return display_file(contents, filename, date, df)
         elif 'xls' in filename:
             # Assume that the user uploaded an excel file
             df = pd.read_excel(io.BytesIO(decoded))
-            print('XLS found')
-            return display_file(contents, filename, date, df)
-        else:
-            raise Exception()
     except Exception as e:
-        print('Exception')
         print(e)
-        return html.Div(
-            children='There was an error processing this file. Please ensure you\'re uploading a .csv or .xls file.',
-            style={
-                'color': 'white',
-                'textAlign': 'center'
-            },
-        )
+        return html.Div([
+            'There was an error processing this file.'
+        ])
 
-
-def display_file(contents, filename, date, df):
     return html.Div([
         html.H5(filename),
         html.H6(datetime.datetime.fromtimestamp(date)),
@@ -133,25 +118,12 @@ def display_file(contents, filename, date, df):
         html.Div('Raw Content'),
         html.Pre(contents[0:200] + '...', style={
             'whiteSpace': 'pre-wrap',
-            'wordBreak': 'break-all',
-            'padding': '10px'
+            'wordBreak': 'break-all'
         })
     ])
 
 
 # CALLBACKS
-
-@dash.callback(Output('output-data-upload', 'children'),
-              Input('upload-data', 'contents'),
-              State('upload-data', 'filename'),
-              State('upload-data', 'last_modified'))
-def update_output(list_of_contents, list_of_names, list_of_dates):
-    if list_of_contents is not None:
-        children = [
-            parse_contents(c, n, d) for c, n, d in
-            zip(list_of_contents, list_of_names, list_of_dates)]
-        return children
-
 
 @dash.callback(
     Output(component_id='df-files', component_property='data'),
