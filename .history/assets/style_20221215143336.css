@@ -1,0 +1,141 @@
+* {
+    box-sizing: border-box;
+}
+  
+body {
+    background-color:#01161E;
+}
+
+ul {
+    list-style-type: none;
+}
+
+.header {
+    text-align: center;
+    color: white;
+}
+
+.subheader {
+    width: 50%;
+    margin:0 auto; /*centers div*/
+    text-align: center; /*centers text within div*/
+    color: white;  
+    padding: 20px; 
+}
+
+.options-text {
+    width: 50%;
+    margin:0 auto; 
+    text-align: center; 
+    color: white;
+    padding: 20px;
+}
+
+#option-one-dropdown {
+    margin:0 auto; 
+    width: 25%;
+}
+
+#upload-data {
+    max-width: 25%;
+    margin:0 auto; 
+    border-width: 1px;
+    border-style: dashed;
+    border-radius: 5px;
+    text-align: center;
+    color: white;
+    
+}
+
+#uploader-output {
+    width: 50%;
+    margin:0 auto; 
+    text-align: center; 
+    color: white;
+    padding: 20px;
+    list-style-type: none;
+    padding: 0;
+}
+
+.submit-button {
+    margin:0 auto;
+    display: block;
+    margin-top: 20px;
+}
+
+
+#button-one {
+    margin:0 auto;
+    display: block;
+    margin-top: 20px;
+}  
+
+
+a:link { text-decoration: none; }
+
+.analytics-text {
+    width: 50%;
+    margin:0 auto; 
+    text-align: left; 
+    color: white;
+    padding: 15px;
+}
+
+/* Create two equal columns that floats next to each other */
+.column {
+    float: left;
+    height: 550px;
+    width: 50%;
+    margin-top: 15px;
+    padding-bottom: 1px;
+}
+  
+/* Clear floats after the columns */
+.row:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+.option2-dropdown {
+    color: white;
+}
+
+.mini-column-a {
+    height: 78%;
+    margin-bottom: 20px;
+}
+
+.mini-column-b {
+    height: 18%;
+    text-align: left;
+    padding-top: 1px;
+    padding-left: 2%;
+    padding-right: 2%;
+    padding-bottom: 1px;
+    color: white;
+}
+
+.sub-a {
+    height: 74%;
+}
+
+.sub-b {
+    height: 34%;
+    margin-left: 2%;
+    padding-top: 20px;
+    line-height: 10px;
+    color: white;
+
+}
+
+#line-graph {
+    padding: 0;
+}
+
+.page2-subtitles {
+    font-weight: normal;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    text-align: center;
+}
