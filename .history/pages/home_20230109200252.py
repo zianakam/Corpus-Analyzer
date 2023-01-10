@@ -2,7 +2,7 @@ from dash import Dash, dcc, html, Input, Output, State, dash_table
 from dash.exceptions import PreventUpdate
 from ast import In
 from datafarm import *
-import zipfile
+from zipfile import ZipFile
 
 import base64
 import datetime
@@ -97,10 +97,7 @@ def parse_contents(contents, filename, date):
     zip_str = io.BytesIO(content_decoded)
         
     try:
-        zip_obj = zipfile.ZipFile(zip_str, 'r')
-        for filename in zip_obj.namelist():
-            if not os.path.isdir(filename):
-                print(filename)
+        zip_obj = ZipFile(zip_str, 'r')
     except zipfile.BadZipFile as error:
         print(error)
 

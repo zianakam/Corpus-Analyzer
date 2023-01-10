@@ -100,7 +100,6 @@ def parse_contents(contents, filename, date):
         zip_obj = zipfile.ZipFile(zip_str, 'r')
         for filename in zip_obj.namelist():
             if not os.path.isdir(filename):
-                print(filename)
     except zipfile.BadZipFile as error:
         print(error)
 

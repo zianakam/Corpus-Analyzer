@@ -89,6 +89,10 @@ layout = html.Div(
 
 # METHODS
 
+def validate_json(file):
+    print('valid')
+
+
 def parse_contents(contents, filename, date):
     content_type, content_string = contents.split(',')
         

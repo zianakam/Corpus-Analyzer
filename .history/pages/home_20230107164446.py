@@ -2,7 +2,6 @@ from dash import Dash, dcc, html, Input, Output, State, dash_table
 from dash.exceptions import PreventUpdate
 from ast import In
 from datafarm import *
-import zipfile
 
 import base64
 import datetime
@@ -13,6 +12,7 @@ import pandas as pd
 import dash_uploader as du
 import uuid
 import json
+import zipfile
 
 
 dash.register_page(__name__, path='/')
@@ -91,19 +91,34 @@ layout = html.Div(
 
 def parse_contents(contents, filename, date):
     content_type, content_string = contents.split(',')
-        
-    content_decoded = base64.b64decode(content_string)
-        
-    zip_str = io.BytesIO(content_decoded)
-        
-    try:
-        zip_obj = zipfile.ZipFile(zip_str, 'r')
-        for filename in zip_obj.namelist():
-            if not os.path.isdir(filename):
-                print(filename)
-    except zipfile.BadZipFile as error:
-        print(error)
 
+    decoded = base64.b64decode(content_string)
+
+    try:
+        if 'zip' in filename:
+            with ZipFile(filename, 'w') as zip:
+                print('ZIP found')
+                for info in zip.infolist():
+                    print(info.filename)
+                    return html.Div(
+                        children='ZIP found.',
+                        style={
+                            'color': 'white',
+                            'textAlign': 'center'
+                        },
+                    )
+        else:
+            raise Exception()
+    except Exception as e:
+        print('Exception')
+        print(e)
+        return html.Div(
+            children='There was an error processing this file. Please ensure you\'re uploading a .zip file with the correct files.',
+            style={
+                'color': 'white',
+                'textAlign': 'center'
+            },
+        )
 
 # CALLBACKS
 
