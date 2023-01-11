@@ -88,6 +88,7 @@ layout = html.Div(
 
 # METHODS
 
+
 def validate_json(zip_obj, filename):
     file = zip_obj.read(filename)
 
@@ -100,7 +101,7 @@ def validate_json(zip_obj, filename):
             print('Valid JSON')
     except ValueError as e:
         print('[', filename, ']', 'invalid json: %s' % e)
-        raise Exception('[', filename, ']', 'invalid json: %s' % e) # replace with return div for err display
+        raise Exception('[', filename, ']', 'invalid json: %s' % e)
     
 
 def parse_contents(contents, filename, date):
@@ -117,8 +118,9 @@ def parse_contents(contents, filename, date):
                 print(filename)
                 validate_json(zip_obj, filename)
             else:
-                print('Invalid file type: [', filename, ']') 
-                raise Exception('Invalid file type: [', filename, ']') # replace with return div for err display
+                # raise Exception('Invalid file type: [', filename, ']')
+                print('Invalid file type: [', filename, ']')
+                raise Exception('Invalid file type: [', filename, ']')
     except zipfile.BadZipFile as error:
         print(error)
 

@@ -58,6 +58,7 @@ layout = html.Div(
             className='options-text'
         ),
 
+        # Fix so can only upload certain files of a certain format
         html.Div(
             children='(2) Insert custom dataset files in Convokit format', 
             className='options-text'
@@ -88,20 +89,8 @@ layout = html.Div(
 
 # METHODS
 
-def validate_json(zip_obj, filename):
-    file = zip_obj.read(filename)
-
-    try:
-        if 'jsonl' in filename:
-            result = [json.loads(jline) for jline in file.splitlines()]
-            print('Valid JSON')   
-        else:
-            json.loads(file)
-            print('Valid JSON')
-    except ValueError as e:
-        print('[', filename, ']', 'invalid json: %s' % e)
-        raise Exception('[', filename, ']', 'invalid json: %s' % e) # replace with return div for err display
-    
+def validate_json(zip_obj):
+    print('valid')
 
 def parse_contents(contents, filename, date):
     content_type, content_string = contents.split(',')
@@ -113,12 +102,8 @@ def parse_contents(contents, filename, date):
     try:
         zip_obj = zipfile.ZipFile(zip_str, 'r')
         for filename in zip_obj.namelist():
-            if 'json' in filename:
+            if not os.path.isdir(filename):
                 print(filename)
-                validate_json(zip_obj, filename)
-            else:
-                print('Invalid file type: [', filename, ']') 
-                raise Exception('Invalid file type: [', filename, ']') # replace with return div for err display
     except zipfile.BadZipFile as error:
         print(error)
 
@@ -129,7 +114,7 @@ def parse_contents(contents, filename, date):
               Input('upload-data', 'contents'),
               State('upload-data', 'filename'),
               State('upload-data', 'last_modified'))
-def grab_upload_data(list_of_contents, list_of_names, list_of_dates):
+def update_output(list_of_contents, list_of_names, list_of_dates):
     if list_of_contents is not None:
         children = [
             parse_contents(c, n, d) for c, n, d in

@@ -100,7 +100,7 @@ def validate_json(zip_obj, filename):
             print('Valid JSON')
     except ValueError as e:
         print('[', filename, ']', 'invalid json: %s' % e)
-        raise Exception('[', filename, ']', 'invalid json: %s' % e) # replace with return div for err display
+        raise Exception('[', filename, ']', 'invalid json: %s' % e)
     
 
 def parse_contents(contents, filename, date):

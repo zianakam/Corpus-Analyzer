@@ -58,6 +58,7 @@ layout = html.Div(
             className='options-text'
         ),
 
+        # Fix so can only upload certain files of a certain format
         html.Div(
             children='(2) Insert custom dataset files in Convokit format', 
             className='options-text'
@@ -88,20 +89,25 @@ layout = html.Div(
 
 # METHODS
 
-def validate_json(zip_obj, filename):
+def validate_jsonl(zip_obj, filename):
     file = zip_obj.read(filename)
-
+    print('jsonl')
     try:
-        if 'jsonl' in filename:
-            result = [json.loads(jline) for jline in file.splitlines()]
-            print('Valid JSON')   
-        else:
-            json.loads(file)
-            print('Valid JSON')
+        result = [json.loads(jline) for jline in file.splitlines()]
+        print('Valid JSON')
     except ValueError as e:
         print('[', filename, ']', 'invalid json: %s' % e)
-        raise Exception('[', filename, ']', 'invalid json: %s' % e) # replace with return div for err display
+
+
+def validate_json(zip_obj, filename):
+    file = zip_obj.read(filename)
+    try:
+        json.loads(file)
+        print('Valid JSON')
+    except ValueError as e:
+        print('[', filename, ']', 'invalid json: %s' % e)
     
+
 
 def parse_contents(contents, filename, date):
     content_type, content_string = contents.split(',')
@@ -115,10 +121,10 @@ def parse_contents(contents, filename, date):
         for filename in zip_obj.namelist():
             if 'json' in filename:
                 print(filename)
-                validate_json(zip_obj, filename)
+                validate_jsonl(zip_obj, filename)
             else:
-                print('Invalid file type: [', filename, ']') 
-                raise Exception('Invalid file type: [', filename, ']') # replace with return div for err display
+                # raise Exception('Invalid file type: [', filename, ']')
+                print('Invalid file type: [', filename, ']')
     except zipfile.BadZipFile as error:
         print(error)
 
