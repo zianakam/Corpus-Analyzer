@@ -95,12 +95,25 @@ def validate_json(zip_obj, filename):
     try:
         if 'jsonl' in filename:
             result = [json.loads(jline) for jline in file.splitlines()]
+            print('Valid JSON')   
             return True
         else:
             json.loads(file)
+            print('Valid JSON')
             return True
     except ValueError as e:
+        print('[', filename, ']', 'invalid json: %s' % e)
         return False
+        """
+        return html.Div(
+                    children=f'Invalid json: [{filename}] %s' % e,
+                    style={
+                        'textAlign': 'center',
+                        'color': 'white',
+                        'padding': '10px'
+                    }
+                )
+        """
     
 
 def parse_contents(contents, filename, date):
@@ -114,19 +127,12 @@ def parse_contents(contents, filename, date):
         zip_obj = zipfile.ZipFile(zip_str, 'r')
         for filename in zip_obj.namelist():
             if 'json' in filename:
-                valid = validate_json(zip_obj, filename)
-                if valid is not True:
-                    return html.Div(
-                        children=f'Invalid json: {filename}',
-                        style={
-                            'textAlign': 'center',
-                            'color': 'white',
-                            'padding': '10px'
-                        }
-                    )
+                print(filename)
+                is_valid = validate_json(zip_obj, filename)
             else:
+                print('Invalid file type: [', filename, ']') 
                 return html.Div(
-                    children=f'Invalid file type: {filename}',
+                    children=f'Invalid file type: [{filename}]',
                     style={
                         'textAlign': 'center',
                         'color': 'white',
@@ -134,8 +140,9 @@ def parse_contents(contents, filename, date):
                     }
                 )
     except zipfile.BadZipFile as error:
+        print(error)
         return html.Div(
-                    children='Uploaded file is not a zip file. Try again.',
+                    children='File is not a zip file',
                     style={
                         'textAlign': 'center',
                         'color': 'white',

@@ -95,11 +95,14 @@ def validate_json(zip_obj, filename):
     try:
         if 'jsonl' in filename:
             result = [json.loads(jline) for jline in file.splitlines()]
+            print('Valid JSON')   
             return True
         else:
             json.loads(file)
+            print('Valid JSON')
             return True
     except ValueError as e:
+        print('[', filename, ']', 'invalid json: %s' % e)
         return False
     
 
@@ -125,6 +128,7 @@ def parse_contents(contents, filename, date):
                         }
                     )
             else:
+                print('Invalid file type: [', filename, ']') 
                 return html.Div(
                     children=f'Invalid file type: {filename}',
                     style={
@@ -134,6 +138,7 @@ def parse_contents(contents, filename, date):
                     }
                 )
     except zipfile.BadZipFile as error:
+        print(error)
         return html.Div(
                     children='Uploaded file is not a zip file. Try again.',
                     style={

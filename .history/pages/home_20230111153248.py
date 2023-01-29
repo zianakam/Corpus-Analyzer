@@ -72,8 +72,6 @@ layout = html.Div(
             multiple=True
         ),
 
-        html.Div(id='output-data-upload'),
-
         dcc.Link(
             html.Button(
                 children='Submit', 
@@ -83,24 +81,26 @@ layout = html.Div(
             href='/analysis'
         ),
 
+        html.Div(id='output-data-upload'),
+
     ]
 )
 
 # METHODS
 
-# remove print statements from below 2 methods
 def validate_json(zip_obj, filename):
     file = zip_obj.read(filename)
 
     try:
         if 'jsonl' in filename:
             result = [json.loads(jline) for jline in file.splitlines()]
-            return True
+            print('Valid JSON')   
         else:
             json.loads(file)
-            return True
+            print('Valid JSON')
     except ValueError as e:
-        return False
+        print('[', filename, ']', 'invalid json: %s' % e)
+        raise Exception('[', filename, ']', 'invalid json: %s' % e) # replace with return div for err display
     
 
 def parse_contents(contents, filename, date):
@@ -114,19 +114,13 @@ def parse_contents(contents, filename, date):
         zip_obj = zipfile.ZipFile(zip_str, 'r')
         for filename in zip_obj.namelist():
             if 'json' in filename:
-                valid = validate_json(zip_obj, filename)
-                if valid is not True:
-                    return html.Div(
-                        children=f'Invalid json: {filename}',
-                        style={
-                            'textAlign': 'center',
-                            'color': 'white',
-                            'padding': '10px'
-                        }
-                    )
+                print(filename)
+                validate_json(zip_obj, filename)
             else:
+                print('Invalid file type: [', filename, ']') 
+                # raise Exception('Invalid file type: [', filename, ']') replace with return div for err display
                 return html.Div(
-                    children=f'Invalid file type: {filename}',
+                    children='Invalid file type: [', filename, ']',
                     style={
                         'textAlign': 'center',
                         'color': 'white',
@@ -134,8 +128,9 @@ def parse_contents(contents, filename, date):
                     }
                 )
     except zipfile.BadZipFile as error:
+        print(error)
         return html.Div(
-                    children='Uploaded file is not a zip file. Try again.',
+                    children='File is not a zip file',
                     style={
                         'textAlign': 'center',
                         'color': 'white',
