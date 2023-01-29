@@ -95,7 +95,7 @@ def validate_json(zip_obj, filename):
     
     :param zip_obj: Zip object storing file
     :param filename: Name of file to validate
-    :return: Whether or not the file contains valid json
+    :return: Whether or not file contains valid json
     """
     file = zip_obj.read(filename)
 
@@ -106,18 +106,17 @@ def validate_json(zip_obj, filename):
         else:
             json.loads(file)
             return True
-            
     except ValueError:
         return False
     
 
-def parse_contents(contents, filename):
+def parse_contents(contents, filename, date):
     """
-    Parses & validates contents of user input data
+    Parses and validates contents of a file
     
-    :param contents: File data
-    :param filename: Name of file to parse
-    :return: Error message
+    :param contents: Zip object storing file
+    :param filename: Name of file to validate
+    :return: Whether or not file contains valid json
     """
     content_type, content_string = contents.split(',')
         
@@ -148,7 +147,6 @@ def parse_contents(contents, filename):
                         'padding': '10px'
                     }
                 )
-
     except zipfile.BadZipFile:
         return html.Div(
                     children='Uploaded file is not a zip file. Try again.',
@@ -167,18 +165,10 @@ def parse_contents(contents, filename):
               State('upload-data', 'filename'),
               State('upload-data', 'last_modified'))
 def grab_upload_data(list_of_contents, list_of_names, list_of_dates):
-    """
-    Monitors for and grabs user-uploaded data
-
-    :param list_of_contents: 
-    :param list_of_names: 
-    :param list_of_dates: 
-    :return: 
-    """
     if list_of_contents is not None:
         children = [
-            parse_contents(c, n) for c, n in
-            zip(list_of_contents, list_of_names)]
+            parse_contents(c, n, d) for c, n, d in
+            zip(list_of_contents, list_of_names, list_of_dates)]
         return children
 
 

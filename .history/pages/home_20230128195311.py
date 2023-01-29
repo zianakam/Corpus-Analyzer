@@ -106,7 +106,6 @@ def validate_json(zip_obj, filename):
         else:
             json.loads(file)
             return True
-            
     except ValueError:
         return False
     
@@ -148,7 +147,6 @@ def parse_contents(contents, filename):
                         'padding': '10px'
                     }
                 )
-
     except zipfile.BadZipFile:
         return html.Div(
                     children='Uploaded file is not a zip file. Try again.',
@@ -173,7 +171,7 @@ def grab_upload_data(list_of_contents, list_of_names, list_of_dates):
     :param list_of_contents: 
     :param list_of_names: 
     :param list_of_dates: 
-    :return: 
+    :return: User uploaded data or an error message
     """
     if list_of_contents is not None:
         children = [

@@ -106,7 +106,6 @@ def validate_json(zip_obj, filename):
         else:
             json.loads(file)
             return True
-            
     except ValueError:
         return False
     
@@ -148,7 +147,6 @@ def parse_contents(contents, filename):
                         'padding': '10px'
                     }
                 )
-
     except zipfile.BadZipFile:
         return html.Div(
                     children='Uploaded file is not a zip file. Try again.',
