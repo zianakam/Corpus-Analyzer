@@ -1,0 +1,5 @@
+.idea
+.history
+__pycache__
+pages/__pycache__
+plotly-cloud.toml

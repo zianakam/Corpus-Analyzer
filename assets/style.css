@@ -1,0 +1,444 @@
+/*************/
+/** General **/
+/*************/
+
+* {
+    box-sizing: border-box;
+    font-family: "Roboto", sans-serif;
+    font-size: 15px;
+}
+  
+body {
+    background: #324A5F;
+    background: radial-gradient(circle, rgba(50, 74, 95, 1) 0%, rgba(27, 42, 65, 1) 35%, rgba(12, 24, 33, 1) 100%);
+    padding-bottom: 400px;
+}
+
+ul {
+    list-style-type: none;
+}
+
+.header {
+    margin-top: 1%;
+    text-align: center;
+    color: white;
+    font-size: 40px;
+    font-family: "Raleway", sans-serif;
+}
+
+.header_link {
+    text-decoration: none;
+}
+
+a:link { 
+    color: white;
+}
+
+a:visited {
+    color: inherit;
+}
+
+.material-symbols-outlined {
+    font-size: 20px;
+    margin-right: 3px;
+    vertical-align: -4px;
+}
+
+.info {
+    font-size: 15px;
+    margin-left: 5px;
+    vertical-align: 5px;
+}
+
+/* Create two equal columns that floats next to each other */
+.column_a {
+    float: left;
+    height: 550px;
+    width: 50%;
+    margin-top: 15px;
+    margin-bottom: 75px;
+}
+
+.column_b {
+    float: left;
+    height: 550px;
+    width: 50%;
+    margin-top: 15px;
+    margin-bottom: 75px;
+}
+  
+/* Clear floats after the columns */
+.row:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+.nav {
+    margin-left: 2%;
+    background: none;
+}
+
+.overview_button {
+    border: none;
+    background: none;
+    color: white;
+    border-bottom: 1px solid white;
+}
+
+.timeline_button {
+    border: none;
+    background: none;
+    color: white;
+    border-bottom: 1px solid white;
+}
+
+.comparison_button {
+    border: none;
+    background: none;
+    color: white;
+    border-bottom: 1px solid white;
+}
+
+.page_view {
+    background: white;
+    margin-left: 4%;
+    margin-bottom: 2%;
+    padding: 0 2% 2% 2%;
+    border-style: solid;
+    border-radius: 8px;
+    border-color: rgba(50, 74, 95, 1);
+}
+
+.page_view_header {
+    font-size: 18px;
+    margin-bottom: 5px;
+    margin-top: 7px;
+}
+
+.page_header {
+    margin-left: 2%;
+    color: white;
+    font-size: 24px;
+}
+
+.section_subheader {
+    font-size: 18px;
+    padding-top: 7px;
+    padding-left: 1%;
+}
+
+.graph_dropdown {
+    margin-left: 4%;
+    margin-bottom: 10px;
+    border-style: solid;
+    border-radius: 8px;
+    border-color: rgba(50, 74, 95, 1);
+    background: white;
+    padding-left: 2%;
+    padding-right: 2%;
+}
+
+.dropdown_row {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.dropdown_col {
+    flex: 1;
+    display: flex;
+    flex-direction: column; /* stack label above dropdown */
+}
+
+#table_container {
+    margin-top: 10px;
+    margin-bottom: 15px;
+}
+
+#table {
+    background: white;
+    padding-top: 3px;
+    padding-left: 8px;
+    margin-right: 4%;
+    margin-bottom: 2%;
+    border-style: solid;
+    border-radius: 8px;
+    border-color: rgba(50, 74, 95, 1);
+}
+
+/***************/
+/** Home Page **/
+/***************/
+
+.subheader {
+    width: 50%;
+    margin: 0 auto; 
+    text-align: center; 
+    color: white;  
+    padding: 20px; 
+}
+
+.options_text {
+    width: 50%;
+    margin:0 auto; 
+    text-align: center; 
+    color: white;
+    padding: 20px;
+}
+
+#options_dropdown {
+    margin:0 auto; 
+    width: 30%;
+}
+
+#upload_data {
+    color: white;
+}
+
+#upload_container {
+    width: 25%;
+    margin: 0 auto;
+    height: 60px;
+    line-height: 60px;
+    border-width: 1px;
+    border-style: dashed;
+    border-radius: 5px;
+    text-align: center;
+    color: white;
+}
+
+#submit_button {
+    margin:0 auto;
+    display: block;
+    margin-top: 20px;
+    border-radius: 5px;
+} 
+
+#error_message {
+    color: white;
+    text-align: center;
+    padding-top: 15px;
+}
+
+/*******************/
+/** Overview Page **/
+/*******************/
+
+.overview_page {
+    padding-bottom: 15%;
+}
+
+.overview_page .overview_button {
+    border-bottom: 1px solid rgba(50, 74, 95, 1);
+}
+
+#summary_stats {
+    color: black;
+    margin: 15px 25px 0px 25px;
+    display: grid;
+    grid-template-columns: repeat(3, 33%);
+    text-align: center;
+    background: white;
+    padding: 1%;
+    border-style: solid;
+    border-radius: 8px;
+    border-color: rgba(50, 74, 95, 1);
+}
+
+.summary_value {
+    font-size: 17px;
+}
+
+#box_plot {
+    margin-top: 15px;
+    margin-left: 4%;
+    height: 590px;
+}
+
+#box_plot_dropdown {
+    margin-top: 6px;
+    margin-bottom: 15px;
+    margin-right: 5%;
+}
+
+#feature_definitions {
+    color: black;
+    background: white;
+    border-style: solid;
+    border-radius: 8px;
+    border-color: rgba(50, 74, 95, 1);
+    margin-right: 4%;
+    padding: 5px 18px 20px 16px;
+    height: 475px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+#definitions_info_subheader {
+    padding-top: 8px;
+    margin-bottom: -5px;
+    font-size: 18px;
+}
+
+.definitions_dropdown {
+    font-size: 16px;
+    padding-bottom: -5px;
+}
+
+.definitions_subheader {
+    font-weight: bold;
+    text-align: center;
+}
+
+#definitions_feature_list {
+    margin-top: 10px;
+    margin-bottom: 15px;
+}
+
+#definitions_text_category {
+    margin-top: -5px;
+    margin-bottom: -10px;
+}
+
+#definitions_text_feature {
+    margin-top: 5px;
+}
+
+
+/********************/
+/** Timeline Page **/
+/********************/
+
+.timeline_page .timeline_button {
+    border-bottom: 1px solid rgba(50, 74, 95, 1);
+}
+
+#line_graph {
+    margin-left: 4%;
+    height: 600px;
+    margin-top: 15px;
+}
+
+#line_graph_dropdown {
+    margin-bottom: 15px;
+    margin-top: 5px;
+}
+
+#line_graph_feature {
+    margin-top: 5px;
+}
+
+.conversation_timeline_view {
+    background: white;
+    width: 599px;
+    margin-bottom: 2%;
+    padding: 0 2% 2% 2%;
+    border-style: solid;
+    border-radius: 8px;
+    border-color: rgba(50, 74, 95, 1);
+}
+
+#conversation_timeline_dropdown {
+    margin-top: 5px;
+}
+
+#conversation_timeline_graph {
+    margin-right: 24px;
+    height: 350px;
+}
+
+/********************/
+/** Comparsion Page **/
+/********************/
+
+.comparison_page .comparison_button {
+    border-bottom: 1px solid rgba(50, 74, 95, 1);
+}
+
+#scatter_plot {
+    margin-left: 4%;
+}
+
+.scatter_subtitle {
+    margin-bottom: 5px;
+    margin-left: 1px;
+}
+
+#scatter_x_dropdown {
+    margin-bottom: 20px;
+}
+
+#scatter_hover_dropdown {
+    margin-bottom: 17px;
+}
+
+.utterance_subheader {
+    padding-top: 8px;
+    padding-bottom: 2px;
+    font-size: 18px;
+}
+
+.utterance_view {
+    background: white;
+    padding: 5px 12px 35px 15px;
+    margin-right: 23px;
+    border-style: solid;
+    border-radius: 8px;
+    border-color: rgba(50, 74, 95, 1);
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+#utterance_text_subheader {
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    padding-top: 10px;
+}
+
+#utterance_feature_subheader {
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+}
+
+#utterance_feature_score {
+    font-size: 16px;
+    text-align: center;
+}
+
+#utterance_text {
+    text-align: center;
+}
+
+.markers {
+    background-color: rgba(78, 236, 88, 0.486);
+}
+
+#utterance_metadata_subheader {
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+}
+
+#utterance_metadata_block {
+    padding-top: 10px;
+    display: flex;
+    flex-direction: row;
+    margin-left: 10px;
+    gap: 30px;
+}
+
+#utterance_id_dropdown {
+    margin-top: 2px;
+    color: black;
+    display: inline-block;
+}
+
+#utterance_feature_dropdown {
+    margin-top: 5px;
+    color: black;
+    display: inline-block;
+}
