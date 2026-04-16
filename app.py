@@ -37,6 +37,7 @@ app.layout = html.Div([
         ),
  
         dcc.Store(id='jsonified_user_id', storage_type='session'), # saved until cleared/browser closed
+        dcc.Store(id='corpus_name', storage_type='session'),
 
         dash.page_container,
 
@@ -45,4 +46,5 @@ app.layout = html.Div([
 
 
 if __name__ == '__main__':    
-    app.run(debug=True, use_reloader=False)  
+    app.run(debug=True)  
+    # use_reloader=False

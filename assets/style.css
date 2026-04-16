@@ -91,6 +91,7 @@ a:visited {
     background: none;
     color: white;
     border-bottom: 1px solid white;
+    margin-left: 15px;
 }
 
 .comparison_button {
@@ -98,6 +99,7 @@ a:visited {
     background: none;
     color: white;
     border-bottom: 1px solid white;
+    margin-left: 15px;
 }
 
 .page_view {
@@ -178,6 +180,38 @@ a:visited {
     padding: 20px; 
 }
 
+#preview {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+    margin-top: 10px;
+    margin-right: 30px;
+}
+
+#preview_button {
+    padding: 5px 15px 5px 15px;
+    background-color: #4F7DBB;
+    color: white;
+    border-radius: 14px;
+    border: 2px solid #5C8AD3;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px, rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
+    vertical-align: 10px;
+}
+
+#counter_icon {
+    color: white;
+    padding-right: 3px;
+    margin-top: 8px;
+}
+
+.or_statement {
+    display: flex;
+    justify-content: center;
+    color: white;
+    margin-top: 30px;
+}
+
+
 .options_text {
     width: 50%;
     margin:0 auto; 
@@ -188,7 +222,8 @@ a:visited {
 
 #options_dropdown {
     margin:0 auto; 
-    width: 30%;
+    width: 35%;
+    margin-bottom: 10px;
 }
 
 #upload_data {
@@ -196,7 +231,7 @@ a:visited {
 }
 
 #upload_container {
-    width: 25%;
+    width: 30%;
     margin: 0 auto;
     height: 60px;
     line-height: 60px;
@@ -229,7 +264,43 @@ a:visited {
 }
 
 .overview_page .overview_button {
-    border-bottom: 1px solid rgba(50, 74, 95, 1);
+    background: #4F7DBB;
+    border-radius: 5px;
+}
+
+#corpus_view {
+    color: black;
+    margin: 15px 25px 0px 25px;
+    background: white;
+    padding: 20px 0px 20px 80px;
+    border-style: solid;
+    border-radius: 8px;
+    border-color: rgba(50, 74, 95, 1);
+}
+
+#corpus_annotation {
+    display: inline;
+    font-size: 20px;
+}
+
+#corpus_input {
+    display: inline;
+    padding: 9px;
+    background-color: #4F7DBB;
+    border-radius: 12px;
+    color: white;
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+    vertical-align: 3px;
+    margin-left: 2px;
+}
+
+#selected_corpus {
+    display: inline;
+}
+
+#article_icon {
+    padding-left: 3px;
+    vertical-align: -5px;
 }
 
 #summary_stats {
@@ -311,7 +382,8 @@ a:visited {
 /********************/
 
 .timeline_page .timeline_button {
-    border-bottom: 1px solid rgba(50, 74, 95, 1);
+    background: #4F7DBB;
+    border-radius: 5px;
 }
 
 #line_graph {
@@ -353,11 +425,13 @@ a:visited {
 /********************/
 
 .comparison_page .comparison_button {
-    border-bottom: 1px solid rgba(50, 74, 95, 1);
+    background: #4F7DBB;
+    border-radius: 5px;
 }
 
 #scatter_plot {
     margin-left: 4%;
+    height: 510px;
 }
 
 .scatter_subtitle {
@@ -432,13 +506,13 @@ a:visited {
 }
 
 #utterance_id_dropdown {
-    margin-top: 2px;
+    margin-top: 5px;
     color: black;
     display: inline-block;
 }
 
 #utterance_feature_dropdown {
-    margin-top: 5px;
+    margin-top: 3px;
     color: black;
     display: inline-block;
 }

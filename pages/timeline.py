@@ -145,6 +145,7 @@ layout = html.Div(
 
                                             dcc.Dropdown(
                                                 placeholder='Select a feature',
+                                                value='factuality',
                                                 options=feature_list,
                                                 multi=False,
                                                 id='line_graph_feature',
@@ -259,6 +260,28 @@ layout = html.Div(
 )
 
 # Functions
+
+def get_default(radio_value, time):
+    """
+    Returns the default DataFrame if no user corpus was input.
+
+    :param radio_value: The selected radio button value ("group" or "speaker")
+    :param time: Whether or not the DataFrame includes time values (True or False)
+    :return: Selected DataFrame
+    """
+    df = pd.DataFrame()
+
+    if radio_value == 'group' and not time:
+        df = pd.read_csv('default_datasets/default_group.csv', index_col=False)
+    elif radio_value == 'speaker' and not time: 
+        df = pd.read_csv('default_datasets/default_speaker.csv', index_col=False)
+    elif radio_value == 'group' and time:
+        df = pd.read_csv('default_datasets/default_group_time.csv', index_col=False)
+    else:
+        df = pd.read_csv('default_datasets/default_speaker_time.csv', index_col=False)
+
+    return df
+
  
 def get_df(jsonified_user_id, radio_value, time):
     """
@@ -269,10 +292,16 @@ def get_df(jsonified_user_id, radio_value, time):
     :param time: Whether or not the DataFrame includes time values (True or False)
     :return: Selected DataFrame
     """
-    user_id = json.loads(jsonified_user_id)
     df = pd.DataFrame()
+    user_id = None
 
-    if radio_value == 'group' and not time:
+    if jsonified_user_id is not None:
+        user_id = json.loads(jsonified_user_id)
+
+    if user_id is None:
+        # Default dataset
+        df = get_default(radio_value, time)
+    elif radio_value == 'group' and not time:
         df = pickle.loads(zlib.decompress(r.get(f"{user_id}_group_df")))
     elif radio_value == 'speaker' and not time: 
         df = pickle.loads(zlib.decompress(r.get(f"{user_id}_speaker_df")))
@@ -306,10 +335,12 @@ def populate_line_subheader(radio_value):
 @dash.callback(
     Output(component_id='line_graph_dropdown', component_property='options'),
     Output(component_id='line_graph_dropdown', component_property='placeholder'),
+    Output(component_id='line_graph_dropdown', component_property='value'),
     Input(component_id='jsonified_user_id', component_property='data'),
     Input(component_id='radio_buttons', component_property='value'),
+    Input(component_id='line_graph_dropdown', component_property='value'),
 )
-def populate_line_dropdown(jsonified_user_id, radio_value):
+def populate_line_dropdown(jsonified_user_id, radio_value, dropdown_value):
     """
     Populates the options for the line graph's id dropdown
 
@@ -323,12 +354,18 @@ def populate_line_dropdown(jsonified_user_id, radio_value):
         options = list(set(df['speaker_id']))
         options.sort()
 
-        return options, "Select a speaker"
+        if dropdown_value == None:
+            dropdown_value = df['speaker_id'][0]
+
+        return options, "Select a speaker", dropdown_value
     elif radio_value == 'group':
         options = list(set(df['group_id']))
         options.sort()
 
-        return options, "Select a group"
+        if dropdown_value == None:
+            dropdown_value = df['group_id'][0]
+
+        return options, "Select a group", dropdown_value
     
 
 @dash.callback(
@@ -348,26 +385,34 @@ def populate_line_table(radio_value, selected_id, selected_feat, jsonified_user_
     :param jsonified_user_id: The user session ID
     :return: A line graph
     """
-    if selected_id is None or len(selected_id) == 0 or selected_feat is None:
-        raise PreventUpdate
+    if selected_id is None or selected_feat is None:
+        return go.Figure()
 
     df = get_df(jsonified_user_id, radio_value, True)
     id_header = df.columns[1] # Either Group_ID or Speaker_ID
     selected_feat = selected_feat.replace(" ", "_")
-    
     feat_df = df[[id_header, 'time', selected_feat]]
-    subset_df = feat_df[feat_df[id_header] == selected_id[0]] # Grab feature scores of an ID
-
     line_graph = go.Figure()
 
-    for index, id in enumerate(selected_id):
-        subset_df = feat_df[feat_df[id_header] == selected_id[index]]
+    if type(selected_id) is list: # Multiple IDs selected
+        for index, id in enumerate(selected_id):
+            subset_df = feat_df[feat_df[id_header] == selected_id[index]]
+            line_graph.add_trace(
+                go.Scatter(
+                    x=subset_df['time'], 
+                    y=subset_df[selected_feat],
+                    mode='lines+markers',
+                    name=selected_id[index]
+                )
+            )
+    else: # Single ID selected
+        subset_df = feat_df[feat_df[id_header] == selected_id]
         line_graph.add_trace(
             go.Scatter(
                 x=subset_df['time'], 
                 y=subset_df[selected_feat],
                 mode='lines+markers',
-                name=selected_id[index]
+                name=selected_id
             )
         )
 
@@ -382,9 +427,11 @@ def populate_line_table(radio_value, selected_id, selected_feat, jsonified_user_
 
 @dash.callback(
     Output(component_id='conversation_timeline_dropdown', component_property='options'),
+    Output(component_id='conversation_timeline_dropdown', component_property='value'),
     Input(component_id='jsonified_user_id', component_property='data'),
+    Input(component_id='conversation_timeline_dropdown', component_property='value'),
 )
-def populate_timeline_dropdown(jsonified_user_id):
+def populate_timeline_dropdown(jsonified_user_id, dropdown_value):
     """
     Populates the options for the timeline dropdown
 
@@ -395,7 +442,10 @@ def populate_timeline_dropdown(jsonified_user_id):
     options = list(set(df['group_id']))
     options.sort()
 
-    return options
+    if dropdown_value == None:
+        dropdown_value = df['group_id'][0]
+
+    return options, dropdown_value
 
 
 @dash.callback(
@@ -412,10 +462,18 @@ def populate_timeline(selected_convo, jsonified_user_id):
     :return: A Gantt chart
     """
     if selected_convo is None:
-        raise PreventUpdate
+        return go.Figure()
     
-    user_id = json.loads(jsonified_user_id)
-    df = pickle.loads(zlib.decompress(r.get(f"{user_id}_utt_df"))) 
+    df = pd.DataFrame()
+
+    if jsonified_user_id is not None:
+        user_id = json.loads(jsonified_user_id)
+        df = pickle.loads(zlib.decompress(r.get(f"{user_id}_utt_df"))) 
+    else: # Default dataset
+        df = pd.read_csv('default_datasets/default_utt.csv', index_col=False)
+        df['timestamp'] = pd.to_timedelta(df['timestamp'])
+
+
     df = df[df['conversation_id'] == selected_convo]
 
     time_df = pd.DataFrame(columns=["Speaker", "Start", "Finish"])

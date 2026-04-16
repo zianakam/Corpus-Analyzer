@@ -64,6 +64,34 @@ layout = html.Div(
             ],
             className="nav"
         ),
+        # Selected Corpus
+        html.Div(
+            children=[
+                html.Div(
+                    children=[
+                        "Corpus: ",
+                    ],
+                    id='corpus_annotation'
+                ),
+
+                html.Div(
+                    children=[
+                        html.Div(
+                            children=[""],
+                            id='selected_corpus'
+                        ),
+                        html.Span(
+                            "article",
+                            className='material-symbols-outlined article',
+                            id='article_icon'
+                        ),
+                    ],
+                    id='corpus_input'
+                ),
+
+            ],
+            id="corpus_view"
+        ),
         # Summary Stats
         html.Div(
             children=[
@@ -158,6 +186,7 @@ layout = html.Div(
 
                                             dcc.Dropdown(
                                                 placeholder='Select a feature',
+                                                value='age of acquisition',
                                                 options=feature_list,
                                                 multi=False,
                                                 id='box_plot_dropdown',
@@ -251,6 +280,7 @@ layout = html.Div(
 
                             dcc.Dropdown(
                                 placeholder='Select a feature category',
+                                value='politeness strategies features',
                                 options=["psycholinguistic features", "politeness strategies features", "coordination features"],
                                 multi=False,
                                 className='definitions_dropdown',
@@ -310,6 +340,28 @@ layout = html.Div(
 
 # Functions
 
+def get_default(radio_value, time):
+    """
+    Returns the default DataFrame if no user corpus was input.
+
+    :param radio_value: The selected radio button value ("group" or "speaker")
+    :param time: Whether or not the DataFrame includes time values (True or False)
+    :return: Selected DataFrame
+    """
+    df = pd.DataFrame()
+
+    if radio_value == 'group' and not time:
+        df = pd.read_csv('default_datasets/default_group.csv', index_col=False)
+    elif radio_value == 'speaker' and not time: 
+        df = pd.read_csv('default_datasets/default_speaker.csv', index_col=False)
+    elif radio_value == 'group' and time:
+        df = pd.read_csv('default_datasets/default_group_time.csv', index_col=False)
+    else:
+        df = pd.read_csv('default_datasets/default_speaker_time.csv', index_col=False)
+
+    return df
+
+
 def get_df(jsonified_user_id, radio_value, time):
     """
     Loads and returns the correct DataFrame according to the input values
@@ -319,10 +371,16 @@ def get_df(jsonified_user_id, radio_value, time):
     :param time: Whether or not the DataFrame includes time values (True or False)
     :return: Selected DataFrame
     """
-    user_id = json.loads(jsonified_user_id)
     df = pd.DataFrame()
+    user_id = None
 
-    if radio_value == 'group' and not time:
+    if jsonified_user_id is not None:
+        user_id = json.loads(jsonified_user_id)
+    
+    if user_id is None: 
+        # Default dataset
+        df = get_default(radio_value, time)
+    elif radio_value == 'group' and not time:
         df = pickle.loads(zlib.decompress(r.get(f"{user_id}_group_df")))
     elif radio_value == 'speaker' and not time: 
         df = pickle.loads(zlib.decompress(r.get(f"{user_id}_speaker_df")))
@@ -334,6 +392,18 @@ def get_df(jsonified_user_id, radio_value, time):
     return df
 
 # Callbacks
+
+@dash.callback(
+    Output(component_id='selected_corpus', component_property='children'),
+    Input(component_id='corpus_name', component_property='data')
+)
+def populate_corpus_view(corpus_name):
+    if corpus_name is None:
+        # Default dataset
+        return 'Cornell Movie-Dialogs Corpus' 
+    else:
+        return corpus_name.strip('"')
+
     
 @dash.callback(
     Output(component_id='data_table', component_property='data'),
@@ -372,11 +442,20 @@ def populate_stat_values(jsonified_user_id):
     :param jsonified_user_id: The user session ID
     :return: Summary statistic values
     """
-    user_id = json.loads(jsonified_user_id)
+    speaker_df = pd.DataFrame()
+    group_df = pd.DataFrame()
+    utt_df = pd.DataFrame()
 
-    speaker_df = pickle.loads(zlib.decompress(r.get(f"{user_id}_speaker_df")))
-    utt_df = pickle.loads(zlib.decompress(r.get(f"{user_id}_utt_df")))
-    group_df = pickle.loads(zlib.decompress(r.get(f"{user_id}_group_df")))
+    if jsonified_user_id is not None:
+        user_id = json.loads(jsonified_user_id)
+
+        speaker_df = pickle.loads(zlib.decompress(r.get(f"{user_id}_speaker_df")))
+        utt_df = pickle.loads(zlib.decompress(r.get(f"{user_id}_utt_df")))
+        group_df = pickle.loads(zlib.decompress(r.get(f"{user_id}_group_df")))
+    else: # Default dataset
+        speaker_df = pd.read_csv('default_datasets/default_speaker.csv')
+        group_df = pd.read_csv('default_datasets/default_group.csv')
+        utt_df = pd.read_csv('default_datasets/default_utt.csv')
 
     return speaker_df['speaker_id'].nunique(), utt_df.index.nunique(), group_df['group_id'].nunique()
 
@@ -397,7 +476,7 @@ def populate_box_plot(radio_value, selected_feat, jsonified_user_id):
     :return: A box plot figure
     """
     if selected_feat is None:
-        raise PreventUpdate
+        return px.box()
     
     df = get_df(jsonified_user_id, radio_value, False)
     selected_feat = selected_feat.replace(" ", "_")
@@ -409,33 +488,38 @@ def populate_box_plot(radio_value, selected_feat, jsonified_user_id):
 
 @dash.callback(
     Output(component_id='definitions_feature_list', component_property='options'),
+    Output(component_id='definitions_feature_list', component_property='value'),
     Input(component_id='definitions_category_list', component_property='value'),
+    Input(component_id='definitions_feature_list', component_property='value'),
 )
-def populate_definitions_dropdown(value):
+def populate_definitions_dropdown(category_value, feature_value):
     """
     Populates the definitions dropdown list
     
     :param value: The selected category of linguistic features
     :return: The list of features that fall under the selected category
     """
-    if value is None:
-        raise PreventUpdate
-    
-    options = []
-    
-    if value == 'politeness strategies features':
-        options = ['please', 'please start', 'has hedge', 'indirect (btw)', 'hedges', 
+    # PS features populated by default
+    default_options = ['please', 'please start', 'has hedge', 'indirect (btw)', 'hedges', 
                    'factuality', 'deference', 'gratitude', 'apologizing', '1st person plural', 
                    '1st person', '1st person start', '2nd person', '2nd person start', 
                    'indirect (greeting)', 'direct question', 'direct start', 'has positive', 
                    'has negative', 'subjunctive', 'indicative']
-    elif value == 'coordination features':
+
+    if category_value == 'politeness strategies features' and feature_value is None:
+        return default_options, 'please'
+    
+    options = []
+    
+    if category_value == 'politeness strategies features':
+        options = default_options
+    elif category_value == 'coordination features':
         options = ['article', 'auxiliary verb', 'conjunction', 'adverb', 'personal pronoun', 
                    'impersonal pronoun', 'preposition', 'quantifier']
-    elif value == 'psycholinguistic features':
+    elif category_value == 'psycholinguistic features':
         options = ['age of acquisition', 'concreteness', 'familiarity', 'imageability']
 
-    return options
+    return options, feature_value
 
 
 @dash.callback(

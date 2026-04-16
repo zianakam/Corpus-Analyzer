@@ -1,5 +1,6 @@
 from dash import dcc, html, Input, Output, State
 from dash.exceptions import PreventUpdate
+from dash_iconify import DashIconify
 from datafarm import *
 from zipfile import ZipFile
 from pathlib import Path
@@ -16,6 +17,7 @@ import redis
 import pickle
 import zlib
 import dash_bootstrap_components as dbc
+
 
 # Home Page
 
@@ -37,7 +39,7 @@ def get_corpus_list():
     
     list = []
     for folder in os.listdir(corpus_dir):
-        folder = folder[:-4].replace('-', ' ') # Remove zip extension & hyphen for display purposes
+        folder = folder[:-4].replace('_', ' ') # Remove zip extension & hyphen for display purposes
         list.append(folder)
 
     list.sort()
@@ -65,17 +67,49 @@ layout = html.Div(
             className='subheader',
         ),
 
-
         html.Div(
             children=[
                 html.Span(
                     "counter_1",
+                    className="material-symbols-outlined counter_1",
+                    id='counter_icon',
+                ),
+
+                dcc.Link(
+                    html.Button(
+                        [
+                            DashIconify(icon="mdi:chart-box-outline", style={"marginRight": "8px", "fontSize": "20px"}),
+                            "Preview with a Sample Dataset"
+                        ], 
+                        style={
+                            "textDecoration": "none"
+                        },
+                        id='preview_button',
+                    ),
+                    href='/overview',
+                    style={"textDecoration": "none"}
+                ),
+            ],
+            id='preview'
+        ),
+
+        html.Div(
+            children=[
+                'OR'
+            ],
+            className='or_statement'
+        ),
+
+        html.Div(
+            children=[
+                html.Span(
+                    "counter_2",
                     className="material-symbols-outlined"
                 ),
-                'Select a pre-created corpus from ConvoKit\'s ',
+                'Load a corpus from ConvoKit\'s ',
                 html.A(
                     children="website",
-                    href="https://convokit.cornell.edu/documentation/datasets.html"
+                    href="https://convokit.cornell.edu/datasets.html"
                 ),
             ], 
             className='options_text',
@@ -88,13 +122,13 @@ layout = html.Div(
 
         html.Div(
             children='OR', 
-            className='options_text'
+            className='or_statement'
         ),
 
         html.Div(
             children=[
                 html.Span(
-                    "counter_2",
+                    "counter_3",
                     className="material-symbols-outlined"
                 ),
                 'Upload a zipped version of your own corpus in ',
@@ -173,20 +207,20 @@ def process_zip(user_zip_path, filename, datafarm):
         # Check for multiple files 
         if len(os.listdir(path_to_user_folder)) > 1:
             shutil.rmtree(path_to_user_folder)
-            return ['Please only upload one zipped folder at a time.']
+            return ['Error: Please ensure your files are stored within a single folder in your zip file and try again.']
         
         # Grab unzipped contents
-        unzipped_path = os.listdir(path_to_user_folder)[0]
+        unzipped_path = path_to_user_folder + "/" + os.listdir(path_to_user_folder)[0]
         
         try:
             datafarm = DataFarm(unzipped_path)
             shutil.rmtree(path_to_user_folder)
         except FileNotFoundError:
             shutil.rmtree(path_to_user_folder) 
-            return ['Error: Please ensure files are stored within a folder in your zip file and try again.']
+            return ['Error: Please ensure files are stored within a single folder in your zip file and try again.']
         except UnboundLocalError:
             shutil.rmtree(path_to_user_folder) 
-            return ['Invalid Convokit object. Please try again.']
+            return ['Error: Invalid Convokit object. Please try again.']
 
     except zipfile.BadZipFile:
         shutil.rmtree(path_to_user_folder)
@@ -203,7 +237,7 @@ def process_dropdown(dropdown_selection, datafarm):
     :param datafarm: An Object to be instantiated
     :return: The instantiated Object or an error message
     """
-    dropdown_selection = dropdown_selection.replace(' ', '-') + '.zip'
+    dropdown_selection = dropdown_selection.replace(' ', '_') + '.zip'
 
     if not Path(path_to_user_folder).exists():
         os.makedirs(path_to_user_folder)
@@ -289,6 +323,7 @@ def update_button(dropdown_value, zipfile, filename):
 @dash.callback(
     output=[
         Output(component_id='jsonified_user_id', component_property='data'),
+        Output(component_id='corpus_name', component_property='data'),
         Output(component_id='error_message', component_property='children'),
         Output(component_id='url', component_property='href'),
     ],
@@ -335,21 +370,23 @@ def pre_process_data(set_progress, n_clicks, dropdown_selection, user_zip_path, 
     if n_clicks is None: 
         raise PreventUpdate
 
-    start = time.time()
     datafarm = None
+    corpus_name = ''
 
     set_progress((20, "20%"))
 
     if user_zip_path is not None:
+        corpus_name = filename[:-4].replace("-", " ").replace("_", " ").title() # Remove zip extension 
         datafarm = process_zip(user_zip_path, filename, datafarm)
     elif dropdown_selection is not None: 
+        corpus_name = dropdown_selection
         datafarm = process_dropdown(dropdown_selection, datafarm)
         
     # If instantiation returned an error code
     if type(datafarm) is list:
-        return None, datafarm, None # Datafarm contains an error message
+        return None, None, datafarm, None # Datafarm contains an error message
     elif type(datafarm.corpus) is list:
-        return None, datafarm.corpus, None # Datafarm.corpus contains an error message
+        return None, None, datafarm.corpus, None # Datafarm.corpus contains an error message
     
     set_progress((40, "40%"))
 
@@ -377,15 +414,7 @@ def pre_process_data(set_progress, n_clicks, dropdown_selection, user_zip_path, 
     
     set_progress((100, "100%"))
 
-    end = time.time()
-
-    print("=====")
-    print(speaker_df)
-    print(group_df)
-    print(utt_df)
-    print("=====")
-
-    return json.dumps(str(user_id)), [''], '/overview'
+    return json.dumps(str(user_id)), json.dumps(str(corpus_name)), [''], '/overview'
    
 
 

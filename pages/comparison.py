@@ -29,6 +29,8 @@ feature_list = ["age of acquisition", "concreteness", "familiarity", "imageabili
                 "1st person start", "2nd person", "2nd person start", "indirect (greeting)",
                 "direct question", "direct start", "has positive", "has negative", "subjunctive", "indicative"]
 
+
+
 layout = html.Div(
     children=[
         # Header
@@ -132,6 +134,7 @@ layout = html.Div(
 
                                                 dcc.Dropdown(
                                                     placeholder='Select a new x-axis',
+                                                    value='familiarity',
                                                     id='scatter_x_dropdown',
                                                     options=feature_list,
                                                     searchable=False
@@ -150,6 +153,7 @@ layout = html.Div(
 
                                                 dcc.Dropdown(
                                                     placeholder='Select a new y-axis',
+                                                    value='concreteness',
                                                     id='scatter_y_dropdown',
                                                     options=feature_list,
                                                     searchable=False
@@ -276,6 +280,7 @@ layout = html.Div(
 
                                             dcc.Dropdown(
                                                 placeholder='Select a new utterance',
+                                                value='age of acquisition',
                                                 id='utterance_feature_dropdown',
                                                 searchable=True
                                             ),
@@ -350,6 +355,28 @@ layout = html.Div(
 
 # Functions
 
+def get_default(radio_value, time):
+    """
+    Returns the default DataFrame if no user corpus was input.
+
+    :param radio_value: The selected radio button value ("group" or "speaker")
+    :param time: Whether or not the DataFrame includes time values (True or False)
+    :return: Selected DataFrame
+    """
+    df = pd.DataFrame()
+
+    if radio_value == 'group' and not time:
+        df = pd.read_csv('default_datasets/default_group.csv', index_col=False)
+    elif radio_value == 'speaker' and not time: 
+        df = pd.read_csv('default_datasets/default_speaker.csv', index_col=False)
+    elif radio_value == 'group' and time:
+        df = pd.read_csv('default_datasets/default_group_time.csv', index_col=False)
+    else:
+        df = pd.read_csv('default_datasets/default_speaker_time.csv', index_col=False)
+
+    return df
+
+
 def get_df(jsonified_user_id, radio_value, time):
     """
     Loads and returns the correct DataFrame according to the input values
@@ -359,10 +386,16 @@ def get_df(jsonified_user_id, radio_value, time):
     :param time: Whether or not the DataFrame includes time values (True or False)
     :return: Selected DataFrame
     """
-    user_id = json.loads(jsonified_user_id)
+    user_id = None
     df = pd.DataFrame()
 
-    if radio_value == 'group' and not time:
+    if jsonified_user_id is not None:
+        user_id = json.loads(jsonified_user_id)
+
+    if user_id is None:
+        # Default dataset
+        df = get_default(radio_value, time)
+    elif radio_value == 'group' and not time:
         df = pickle.loads(zlib.decompress(r.get(f"{user_id}_group_df")))
     elif radio_value == 'speaker' and not time: 
         df = pickle.loads(zlib.decompress(r.get(f"{user_id}_speaker_df")))
@@ -419,8 +452,10 @@ def grab_markers(data, feature):
 @dash.callback(
     Output(component_id='utterance_id_dropdown', component_property='options'),
     Output(component_id='utterance_id_dropdown', component_property='placeholder'),
+    Output(component_id='utterance_id_dropdown', component_property='value'),
     Output(component_id='utterance_feature_dropdown', component_property='options'),
     Output(component_id='utterance_feature_dropdown', component_property='placeholder'),
+    Output(component_id='utterance_feature_dropdown', component_property='value'),
     Input(component_id='jsonified_user_id', component_property='data'),
 )
 def populate_utterance_dropdowns(jsonified_user_id):
@@ -433,10 +468,16 @@ def populate_utterance_dropdowns(jsonified_user_id):
     :return: A list of linguistic features
     :return: Placeholder text
     """
-    user_id = json.loads(jsonified_user_id)
-    utt_df = pickle.loads(zlib.decompress(r.get(f"{user_id}_utt_df")))
+    utt_df = pd.DataFrame()
 
-    return utt_df.index, 'Select an utterance', feature_list, 'Select a feature'
+    if jsonified_user_id is not None:
+        user_id = json.loads(jsonified_user_id)
+        utt_df = pickle.loads(zlib.decompress(r.get(f"{user_id}_utt_df"))) 
+    else: # Default dataset
+        utt_df = pd.read_csv('default_datasets/default_utt.csv')
+        utt_df = utt_df.set_index('id')
+
+    return utt_df.index, 'Select an utterance', utt_df.index[0], feature_list, 'Select a feature', 'age of acquisition'
 
 
 @dash.callback(
@@ -467,11 +508,19 @@ def populate_utterance_data(jsonified_user_id, utt_id, feature):
     :return: The utterance feature being observed
     :return: The utterance's feature score
     """
+
     if utt_id is None or feature is None: 
         raise PreventUpdate
+    
+    utt_df = pd.DataFrame()
 
-    user_id = json.loads(jsonified_user_id)
-    utt_df = pickle.loads(zlib.decompress(r.get(f"{user_id}_utt_df"))) 
+    if jsonified_user_id is not None:
+        user_id = json.loads(jsonified_user_id)
+        utt_df = pickle.loads(zlib.decompress(r.get(f"{user_id}_utt_df"))) 
+    else: # Default dataset
+        utt_df = pd.read_csv('default_datasets/default_utt.csv')
+        utt_df = utt_df.set_index('id')
+
     utt_df['text'] = utt_df['text'].astype(str)
 
     row = utt_df.loc[utt_id]
@@ -480,9 +529,14 @@ def populate_utterance_data(jsonified_user_id, utt_id, feature):
     speaker = 'Speaker: ' + str(row['speaker']) 
     group = 'Group: ' + str(row['conversation_id'])
     timestamp = 'Timestamp: ' + str(row['timestamp']) 
-    reply_to = 'Reply To: ' + str(row['reply_to'])
+    reply_to = ''
     feat_score = f'{string.capwords(feature)} Score' 
     value = str(row[feature.replace(" ", "_")])
+
+    if str(row['reply_to']) != 'nan' and str(row['reply_to']) != '<NA>':
+        reply_to = 'Reply To: ' + str(row['reply_to'])
+    else: 
+        reply_to = 'Reply To: N/A'
 
     return text, speaker, group, timestamp, reply_to, feat_score, value
 
