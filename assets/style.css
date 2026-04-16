@@ -466,7 +466,7 @@ a:visited {
 
 .utterance_view {
     background: white;
-    padding: 5px 12px 35px 15px;
+    padding: 5px 20px 35px 20px;
     margin-right: 23px;
     border-style: solid;
     border-radius: 8px;
@@ -511,9 +511,7 @@ a:visited {
 #utterance_metadata_block {
     padding-top: 10px;
     display: flex;
-    flex-direction: row;
-    margin-left: 10px;
-    gap: 30px;
+    justify-content: space-between;
 }
 
 #utterance_id_dropdown {

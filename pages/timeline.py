@@ -474,6 +474,7 @@ def populate_timeline(selected_convo, jsonified_user_id):
         df['timestamp'] = pd.to_timedelta(df['timestamp'])
 
     df = df.dropna(subset=['speaker'])
+    df['speaker'] = df['speaker'].astype(str)
     df = df[df['conversation_id'] == selected_convo]
 
     time_df = pd.DataFrame(columns=["Speaker", "Start", "Finish"])
