@@ -303,6 +303,17 @@ a:visited {
     vertical-align: -5px;
 }
 
+#change_dataset_button {
+    float: right;
+    margin-right: 30px;
+    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+    color: white;
+    background-color: #3e5c76;
+    border-radius: 15px;
+    border: white 1px solid;
+    padding: 5px 12px 5px 12px;  
+}
+
 #summary_stats {
     color: black;
     margin: 15px 25px 0px 25px;

@@ -89,6 +89,14 @@ layout = html.Div(
                     id='corpus_input'
                 ),
 
+                dcc.Link(
+                    html.Button(
+                        "Change datasets",
+                        id='change_dataset_button'
+                    ),
+                    href='/'    
+                )
+
             ],
             id="corpus_view"
         ),
