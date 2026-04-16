@@ -355,7 +355,7 @@ def populate_line_dropdown(jsonified_user_id, radio_value, dropdown_value):
         options.sort()
 
         if dropdown_value == None:
-            dropdown_value = df['speaker_id'][0]
+            dropdown_value = df['speaker_id'].unique()[:3]
 
         return options, "Select a speaker", dropdown_value
     elif radio_value == 'group':
@@ -363,7 +363,7 @@ def populate_line_dropdown(jsonified_user_id, radio_value, dropdown_value):
         options.sort()
 
         if dropdown_value == None:
-            dropdown_value = df['group_id'][0]
+            dropdown_value = df['group_id'].unique()[:3]
 
         return options, "Select a group", dropdown_value
     
@@ -473,6 +473,7 @@ def populate_timeline(selected_convo, jsonified_user_id):
         df = pd.read_csv('default_datasets/default_utt.csv', index_col=False)
         df['timestamp'] = pd.to_timedelta(df['timestamp'])
 
+    df = df.dropna(subset=['speaker'])
     df = df[df['conversation_id'] == selected_convo]
 
     time_df = pd.DataFrame(columns=["Speaker", "Start", "Finish"])

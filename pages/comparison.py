@@ -176,6 +176,7 @@ layout = html.Div(
                                             placeholder='Select features visible on-hover',
                                             multi=True,
                                             id='scatter_hover_dropdown',
+                                            value=['imageability', 'factuality']
                                         ),
                                     ],
                                     className='dropdown_col'
