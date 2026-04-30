@@ -17,7 +17,6 @@
 
 <br>
 
-[Live Deployment](https://corpus-analyzer.onrender.com/) • [Screenshots](#application-screenshots) 
 </div>
 
 ---
