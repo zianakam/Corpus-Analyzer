@@ -1,5 +1,4 @@
 from dash import dcc, html, Input, Output, dash_table
-from dash.exceptions import PreventUpdate
 from datafarm import *
 
 import dash_bootstrap_components as dbc
@@ -152,16 +151,42 @@ layout = html.Div(
                                         ],
                                     className="page_view_header",
                                 ),
-                                dcc.RadioItems(
-                                    [
-                                        {'label': 'Sort-by Speaker', 'value': 'speaker'},
-                                        {'label': 'Sort-by Group', 'value': 'group'}
-                                    ], 
-                                    value='group', 
-                                    inline=True,
-                                    id='radio_buttons',
-                                    inputStyle={"margin-right": "5px"}, # between the icon and the label
-                                    labelStyle={'display': 'inline-block', 'margin-right': '10px'} # between radio buttons
+
+                                html.Div(
+                                    children=[
+                                        dcc.RadioItems(
+                                            [
+                                                {'label': 'Sort-by Speaker', 'value': 'speaker'},
+                                                {'label': 'Sort-by Group', 'value': 'group'}
+                                            ], 
+                                            value='group', 
+                                            inline=True,
+                                            id='radio_buttons',
+                                            inputStyle={"margin-right": "5px"}, # between the icon and the label
+                                            labelStyle={'display': 'inline-block', 'margin-right': '10px'} # between radio buttons
+                                        ),
+
+                                        dcc.Checklist(
+                                            options=[
+                                                {'label': 'View corpus metadata', 'value': 'VCM'}
+                                            ],
+                                            value=[],
+                                            id='metadata_check'
+                                        ),
+                                        html.Span(
+                                            "info",
+                                            className="material-symbols-outlined info",
+                                            id='metadata_info'
+                                        ),
+                                        dbc.Tooltip(
+                                            "View the default metadata features associated with a Corpus. " \
+                                            "Prepended with the text 'meta.'.",
+                                            target="metadata_info",
+                                            placement="top"
+                                        ),
+
+                                    ],
+                                    className='page_view_selection'
                                 ),
                             ],
                             className="page_view"
@@ -194,8 +219,6 @@ layout = html.Div(
 
                                             dcc.Dropdown(
                                                 placeholder='Select a feature',
-                                                value='age of acquisition',
-                                                options=feature_list,
                                                 multi=False,
                                                 id='box_plot_dropdown',
                                                 searchable=True
@@ -348,35 +371,41 @@ layout = html.Div(
 
 # Functions
 
-def get_default(radio_value, time):
+def get_default(radio_value, time, metadata):
     """
     Returns the default DataFrame if no user corpus was input.
 
     :param radio_value: The selected radio button value ("group" or "speaker")
     :param time: Whether or not the DataFrame includes time values (True or False)
+    :param metadata: Whether or not the DataFrame includes metadata values (True or False)
     :return: Selected DataFrame
     """
     df = pd.DataFrame()
 
-    if radio_value == 'group' and not time:
+    if radio_value == 'group' and not time and not metadata:
         df = pd.read_csv('default_datasets/default_group.csv', index_col=False)
-    elif radio_value == 'speaker' and not time: 
+    elif radio_value == 'speaker' and not time and not metadata: 
         df = pd.read_csv('default_datasets/default_speaker.csv', index_col=False)
     elif radio_value == 'group' and time:
         df = pd.read_csv('default_datasets/default_group_time.csv', index_col=False)
-    else:
+    elif radio_value == 'speaker' and time:
         df = pd.read_csv('default_datasets/default_speaker_time.csv', index_col=False)
+    elif radio_value == 'group' and metadata:
+        df = pd.read_csv('default_datasets/default_group_meta.csv', index_col=False)
+    elif radio_value == 'speaker' and metadata:
+        df = pd.read_csv('default_datasets/default_speaker_meta.csv', index_col=False)
 
     return df
 
 
-def get_df(jsonified_user_id, radio_value, time):
+def get_df(jsonified_user_id, radio_value, time, metadata):
     """
     Loads and returns the correct DataFrame according to the input values
 
     :param jsonified_user_id: The user session ID
     :param radio_value: The selected radio button value ("group" or "speaker")
     :param time: Whether or not the DataFrame includes time values (True or False)
+    :param metadata: Whether or not the DataFrame includes metadata values (True or False)
     :return: Selected DataFrame
     """
     df = pd.DataFrame()
@@ -387,16 +416,20 @@ def get_df(jsonified_user_id, radio_value, time):
     
     if user_id is None: 
         # Default dataset
-        df = get_default(radio_value, time)
-    elif radio_value == 'group' and not time:
+        df = get_default(radio_value, time, metadata)
+    elif radio_value == 'group' and not time and not metadata:
         df = pickle.loads(zlib.decompress(r.get(f"{user_id}_group_df")))
-    elif radio_value == 'speaker' and not time: 
+    elif radio_value == 'speaker' and not time and not metadata: 
         df = pickle.loads(zlib.decompress(r.get(f"{user_id}_speaker_df")))
     elif radio_value == 'group' and time:
         df = pickle.loads(zlib.decompress(r.get(f"{user_id}_group_time_df")))
-    else:
+    elif radio_value == 'speaker' and time:
         df = pickle.loads(zlib.decompress(r.get(f"{user_id}_speaker_time_df")))
-
+    elif radio_value == 'group' and metadata:
+        df = pickle.loads(zlib.decompress(r.get(f"{user_id}_group_meta_df")))
+    elif radio_value == 'speaker' and metadata:
+        df = pickle.loads(zlib.decompress(r.get(f"{user_id}_speaker_meta_df")))
+    
     return df
 
 # Callbacks
@@ -408,7 +441,7 @@ def get_df(jsonified_user_id, radio_value, time):
 def populate_corpus_view(corpus_name):
     if corpus_name is None:
         # Default dataset
-        return 'Cornell Movie-Dialogs Corpus' 
+        return 'Group Affect and Performance (GAP) Corpus' 
     else:
         return corpus_name.strip('"')
 
@@ -417,9 +450,10 @@ def populate_corpus_view(corpus_name):
     Output(component_id='data_table', component_property='data'),
     Input(component_id='jsonified_user_id', component_property='data'),
     Input(component_id='radio_buttons', component_property='value'),
-    Input(component_id='_pages_location', component_property="pathname")
+    Input(component_id='_pages_location', component_property="pathname"),
+    Input(component_id='metadata_check', component_property='value')
 )
-def populate_table(jsonified_user_id, radio_value, pathname):
+def populate_table(jsonified_user_id, radio_value, pathname, metadata):
     """
     Populates the table component
 
@@ -430,10 +464,12 @@ def populate_table(jsonified_user_id, radio_value, pathname):
     """
     df = pd.DataFrame()
 
-    if pathname == "/timeline":
-        df = get_df(jsonified_user_id, radio_value, True)
-    else: 
-        df = get_df(jsonified_user_id, radio_value, False)
+    if pathname == "/timeline": # Return Time DataFrame
+        df = get_df(jsonified_user_id, radio_value, True, False)
+    elif not metadata: # Return normal DataFrame
+        df = get_df(jsonified_user_id, radio_value, False, False)
+    else: # Return normal DataFrame + metadata
+        df = get_df(jsonified_user_id, radio_value, False, True)
 
     return df.to_dict('records')
     
@@ -469,25 +505,61 @@ def populate_stat_values(jsonified_user_id):
 
 
 @dash.callback(
+    Output(component_id='box_plot_dropdown', component_property='options'),
+    Output(component_id='box_plot_dropdown', component_property='value'),
+    Input(component_id='jsonified_user_id', component_property='data'),
+    Input(component_id='radio_buttons', component_property='value'),
+    Input(component_id='metadata_check', component_property='value')
+)
+def populate_box_plot_dropdown(jsonified_user_id, radio_value, metadata):
+    """
+    Populate the dropdown of feature listings for the box plot
+
+    :param jsonified_user_id: The user session ID
+    :param radio_value: The selected radio button value ("group" or "speaker")
+    :param metadata: Whether or not the DataFrame includes metadata values (True or False)
+    :return: A list of features from the selected DataFrame
+    """
+    meta_df = get_df(jsonified_user_id, radio_value, False, True)
+    meta_df = meta_df.iloc[:, 1:] # Remove ID column
+    meta_df = meta_df.convert_dtypes()
+    numerical_cols = meta_df.select_dtypes(include=['int', 'float']).columns.tolist() 
+
+    feature_list.extend(numerical_cols)
+
+    return feature_list, 'age of acquisition'
+
+
+@dash.callback(
     Output(component_id='box_plot', component_property='figure'),
     Input(component_id='radio_buttons', component_property='value'), 
     Input(component_id='box_plot_dropdown', component_property='value'), 
     Input(component_id='jsonified_user_id', component_property='data'),
+    Input(component_id='metadata_check', component_property='value')
 )
-def populate_box_plot(radio_value, selected_feat, jsonified_user_id):
+def populate_box_plot(radio_value, selected_feat, jsonified_user_id, metadata):
     """
     Populates the box plot 
 
     :param radio_value: The selected radio button value ("group" or "speaker")
     :param selected_feat: The selected linguistic feature
     :param jsonified_user_id: The user session ID
+    :param metadata: Whether or not the DataFrame includes metadata values (True or False)
     :return: A box plot figure
     """
     if selected_feat is None:
         return px.box()
     
-    df = get_df(jsonified_user_id, radio_value, False)
-    selected_feat = selected_feat.replace(" ", "_")
+    df = get_df(jsonified_user_id, radio_value, False, False)
+    metadata = get_df(jsonified_user_id, radio_value, False, True)
+    metadata = metadata.iloc[:, 1:] # Remove the ID column
+    metadata = metadata.convert_dtypes()
+    
+    df = pd.concat([df, metadata], axis=1)
+    metadata_list = metadata.columns.tolist()
+
+    if selected_feat not in metadata_list:
+        selected_feat = selected_feat.replace(" ", "_")
 
     box_plot = px.box(df, y=selected_feat, points='all')
 

@@ -211,7 +211,7 @@ def process_zip(user_zip_path, filename, datafarm):
         
         # Grab unzipped contents
         unzipped_path = path_to_user_folder + "/" + os.listdir(path_to_user_folder)[0]
-        
+        print('unzipped path: ', unzipped_path)
         try:
             datafarm = DataFarm(unzipped_path)
             shutil.rmtree(path_to_user_folder)
@@ -256,21 +256,22 @@ def process_dropdown(dropdown_selection, datafarm):
     os.remove(path_to_user_folder + f'/{dropdown_selection}')
     folder_name = os.listdir(path_to_user_folder)[0]
     unzipped_path = path_to_user_folder + f'/{folder_name}'
-
+    print('unzipped path: ', unzipped_path)
     try:
         datafarm = DataFarm(unzipped_path)
         shutil.rmtree(path_to_user_folder) 
     except FileNotFoundError:
         shutil.rmtree(path_to_user_folder) 
         return [f'Error: Please ensure files are stored within a folder in your zip file and try again.']
-    except UnboundLocalError:
+    except UnboundLocalError as e:
+        print(e)
         shutil.rmtree(path_to_user_folder) 
         return [f'Invalid Convokit object. Please try again.']
 
     return datafarm
 
 
-def save_files(speaker_df, group_df, speaker_time_df, group_time_df, utt_df):
+def save_files(speaker_df, group_df, speaker_time_df, group_time_df, utt_df, speaker_meta_df, group_meta_df):
     """
     Save the processed DataFrames to a Redis database
 
@@ -278,6 +279,8 @@ def save_files(speaker_df, group_df, speaker_time_df, group_time_df, utt_df):
     :param group_df: DataFrame of conversation ("group") information
     :param speaker_time_df: DataFrame of combined speaker & time information
     :param group_time_df: DataFrame of combined conversation & time information
+    :param speaker_df: DataFrame of speaker metadata information
+    :param group_df: DataFrame of conversation metadata information
     :param utt_df: DataFrame of utterance information
     """ 
 
@@ -288,8 +291,13 @@ def save_files(speaker_df, group_df, speaker_time_df, group_time_df, utt_df):
 
     r.set(f"{user_id}_speaker_df", zlib.compress(pickle.dumps(speaker_df)), ex=86400)  # expires in 24hrs
     r.set(f"{user_id}_group_df", zlib.compress(pickle.dumps(group_df)), ex=86400) 
+
     r.set(f"{user_id}_speaker_time_df", zlib.compress(pickle.dumps(speaker_time_df)), ex=86400)  
-    r.set(f"{user_id}_group_time_df", zlib.compress(pickle.dumps(group_time_df)), ex=86400)  
+    r.set(f"{user_id}_group_time_df", zlib.compress(pickle.dumps(group_time_df)), ex=86400) 
+
+    r.set(f"{user_id}_speaker_meta_df", zlib.compress(pickle.dumps(speaker_meta_df)), ex=86400)
+    r.set(f"{user_id}_group_meta_df", zlib.compress(pickle.dumps(group_meta_df)), ex=86400)
+
     r.set(f"{user_id}_utt_df", zlib.compress(pickle.dumps(utt_df)), ex=86400) 
 
 # Callbacks
@@ -364,8 +372,9 @@ def pre_process_data(set_progress, n_clicks, dropdown_selection, user_zip_path, 
     :param user_zip_path: Content from upload component
     :param filename: The name of the file uploaded
     :return: The unique user session ID
+    :return: The name of the corpus input
     :return: An error message
-    :return: The status of the processing
+    :return: The website path
     """
     if n_clicks is None: 
         raise PreventUpdate
@@ -377,30 +386,32 @@ def pre_process_data(set_progress, n_clicks, dropdown_selection, user_zip_path, 
 
     if user_zip_path is not None:
         corpus_name = filename[:-4].replace("-", " ").replace("_", " ").title() # Remove zip extension 
+        print("corpus_name: ", corpus_name)
         datafarm = process_zip(user_zip_path, filename, datafarm)
     elif dropdown_selection is not None: 
         corpus_name = dropdown_selection
         datafarm = process_dropdown(dropdown_selection, datafarm)
-        
+    
+    print("datafarm: ", datafarm)
     # If instantiation returned an error code
     if type(datafarm) is list:
         return None, None, datafarm, None # Datafarm contains an error message
     elif type(datafarm.corpus) is list:
         return None, None, datafarm.corpus, None # Datafarm.corpus contains an error message
-    
+
     set_progress((40, "40%"))
 
     datafarm.pre_process()
-    
+
     set_progress((60, "60%"))
-    
-    speaker_df, speaker_time_df = datafarm.create_speaker_dfs() 
+
+    speaker_df, speaker_time_df, speaker_meta_df = datafarm.create_speaker_dfs() 
     speaker_df = datafarm.clean_columns(speaker_df)
     speaker_time_df = datafarm.clean_columns(speaker_time_df)
 
     set_progress((80, "80%"))
 
-    group_df, group_time_df = datafarm.create_group_dfs(speaker_df, speaker_time_df)
+    group_df, group_time_df, group_meta_df = datafarm.create_group_dfs(speaker_df, speaker_time_df)
     group_df = datafarm.clean_columns(group_df)
     group_time_df = datafarm.clean_columns(group_time_df)
 
@@ -410,9 +421,17 @@ def pre_process_data(set_progress, n_clicks, dropdown_selection, user_zip_path, 
     utt_df = datafarm.format_utt_df(utt_df)
     utt_df = datafarm.clean_columns(utt_df)
 
-    save_files(speaker_df, group_df, speaker_time_df, group_time_df, utt_df)
+    save_files(speaker_df, group_df, speaker_time_df, group_time_df, utt_df, speaker_meta_df, group_meta_df)
     
     set_progress((100, "100%"))
+
+    speaker_meta_df.to_csv("default_datasets/default_speaker_meta.csv")
+    group_meta_df.to_csv("default_datasets/default_group_meta.csv")
+    speaker_df.to_csv("default_datasets/default_speaker.csv")
+    group_df.to_csv("default_datasets/default_group.csv")
+    speaker_time_df.to_csv("default_datasets/default_speaker_time.csv")
+    group_time_df.to_csv("default_datasets/default_group_time.csv")
+    utt_df.to_csv("default_datasets/default_utt.csv")
 
     return json.dumps(str(user_id)), json.dumps(str(corpus_name)), [''], '/overview'
    

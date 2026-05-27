@@ -118,6 +118,14 @@ a:visited {
     margin-top: 7px;
 }
 
+.page_view_selection {
+    display: flex;
+}
+
+#metadata_check {
+    margin-left: 80px;
+}
+
 .page_header {
     margin-left: 2%;
     color: white;
@@ -231,7 +239,7 @@ a:visited {
 }
 
 #upload_container {
-    width: 30%;
+    width: 40%;
     margin: 0 auto;
     height: 60px;
     line-height: 60px;

@@ -128,9 +128,11 @@ class DataFarm():
 
         :return: Dataframe of speaker scores
         :return: Dataframe of speaker scores over time
+        :return: Dataframe of speaker scores including built-in Corpus metadata
         """
         speaker_df = pd.DataFrame()
         speaker_time_df = pd.DataFrame()
+        speaker_meta_df = pd.DataFrame()
 
         for speaker in self.corpus.iter_speakers():
             utt_df = speaker.get_utterances_dataframe()
@@ -140,7 +142,13 @@ class DataFarm():
 
             time_scores = self.calc_time_scores(speaker, utt_df)
             speaker_time_df = pd.concat([speaker_time_df, time_scores], axis=0)
-        
+
+            metadata = self.get_metadata(speaker, 'speaker')
+            speaker_meta_df = pd.concat([speaker_meta_df, metadata], axis=0)
+
+
+        speaker_meta_df.reset_index(drop=True, inplace=True)
+        speaker_meta_df.insert(0, 'speaker_id', speaker_meta_df.pop('speaker_id'))
 
         speaker_df.reset_index(drop=True, inplace=True)
         speaker_df = speaker_df.fillna(0) 
@@ -149,12 +157,12 @@ class DataFarm():
         # Remove extra apostrophes from last columns
         psycho_cols = ['meta.age_of_acquisition', 'meta.concreteness', 'meta.familiarity', 'meta.imageability']
         speaker_time_df[psycho_cols] = speaker_time_df[psycho_cols].astype(str).replace("'", "", regex=True) 
-        # Convert last columns to float type
+        # Convert psycho columns to float type
         speaker_time_df[psycho_cols] = speaker_time_df[psycho_cols].astype(float).round(2)
         # Fill null values -- excluding Time & ID column
         speaker_time_df[self.feature_list] = speaker_time_df[self.feature_list].astype(float).fillna(0.0)
 
-        return speaker_df, speaker_time_df
+        return speaker_df, speaker_time_df, speaker_meta_df
 
     
     def calc_speaker_scores(self, speaker, utt_df):
@@ -230,6 +238,34 @@ class DataFarm():
             
         return scores
     
+    
+    def get_metadata(self, corpus_object, type):
+        """
+        Extracts metadata from a corpus object
+
+        :param corpus_object: A ConvoKit speaker or conversation object
+        :param type: The type of object ('speaker' or 'conversation')
+        :return: A DataFrame of metadata
+        """
+        metadata = pd.DataFrame(corpus_object.meta, index=[0])
+
+        if 'coord' in metadata.columns:
+            metadata.drop(['coord'], inplace=True, axis=1)
+
+        metadata = metadata.add_prefix('meta.')
+
+        metadata.columns = metadata.columns.str.lower()
+        metadata.columns = metadata.columns.str.replace(' ', '_')
+
+        if type == 'speaker':
+            metadata['speaker_id'] = corpus_object.id
+        elif type == 'conversation':
+            metadata['group_id'] = corpus_object.id
+
+        metadata = metadata[:1].reset_index(drop=True)
+
+        return metadata
+
 
     def format_timestamp(self, timestamp):
         """
@@ -277,9 +313,11 @@ class DataFarm():
         :param speaker_time_df: Dataframe of speaker feature scores over time
         :return: Dataframe of group feature scores
         :return: Dataframe of group feature scores over time
+        :return: Dataframe of group metadata information
         """
         group_df = pd.DataFrame()
         group_time_df = pd.DataFrame()
+        group_meta_df = pd.DataFrame()
 
         for conversation in self.corpus.iter_conversations():
             speakers_list = conversation.get_speaker_ids()
@@ -289,10 +327,17 @@ class DataFarm():
 
             group_time_scores = self.calc_group_time_scores(speaker_time_df, speakers_list, conversation)
             group_time_df = pd.concat([group_time_df, group_time_scores], axis=0)
+
+            metadata = self.get_metadata(conversation, 'conversation')
+            group_meta_df = pd.concat([group_meta_df, metadata], axis=0)
+
+        
+        group_meta_df.reset_index(drop=True, inplace=True)
+        group_meta_df.insert(0, 'group_id', group_meta_df.pop('group_id'))
         
         group_time_df.reset_index(drop=False, inplace=True)
         
-        return group_df, group_time_df
+        return group_df, group_time_df, group_meta_df
     
 
     def calc_group_scores(self, speaker_df, speakers_list, conversation):

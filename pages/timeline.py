@@ -84,16 +84,29 @@ layout = html.Div(
                                         ],
                                     className="page_view_header",
                                 ),
-                                dcc.RadioItems(
-                                    [
-                                        {'label': 'Sort-by Speaker', 'value': 'speaker'},
-                                        {'label': 'Sort-by Group', 'value': 'group'}
-                                    ], 
-                                    value='group', 
-                                    inline=True,
-                                    id='radio_buttons',
-                                    inputStyle={"margin-right": "5px"}, # between the icon and the label
-                                    labelStyle={'display': 'inline-block', 'margin-right': '10px'} # between radio buttons
+                                html.Div(
+                                    children=[
+                                        dcc.RadioItems(
+                                            [
+                                                {'label': 'Sort-by Speaker', 'value': 'speaker'},
+                                                {'label': 'Sort-by Group', 'value': 'group'}
+                                            ], 
+                                            value='group', 
+                                            inline=True,
+                                            id='radio_buttons',
+                                            inputStyle={"margin-right": "5px"}, # between the icon and the label
+                                            labelStyle={'display': 'inline-block', 'margin-right': '10px'} # between radio buttons
+                                        ),
+                                        dcc.Checklist(
+                                            options=[
+                                                {'label': 'View corpus metadata', 'value': 'VCM'}
+                                            ],
+                                            value=[],
+                                            id='metadata_check',
+                                            style={'display': 'None'} # Integrated but hidden to avoid callbacks firing for a non-existent object error
+                                        )
+                                    ],
+                                    className='page_view_selection'
                                 ),
                             ],
                             className="page_view"
@@ -261,35 +274,41 @@ layout = html.Div(
 
 # Functions
 
-def get_default(radio_value, time):
+def get_default(radio_value, time, metadata):
     """
     Returns the default DataFrame if no user corpus was input.
 
     :param radio_value: The selected radio button value ("group" or "speaker")
     :param time: Whether or not the DataFrame includes time values (True or False)
+    :param metadata: Whether or not the DataFrame includes metadata values (True or False)
     :return: Selected DataFrame
     """
     df = pd.DataFrame()
 
-    if radio_value == 'group' and not time:
+    if radio_value == 'group' and not time and not metadata:
         df = pd.read_csv('default_datasets/default_group.csv', index_col=False)
-    elif radio_value == 'speaker' and not time: 
+    elif radio_value == 'speaker' and not time and not metadata: 
         df = pd.read_csv('default_datasets/default_speaker.csv', index_col=False)
     elif radio_value == 'group' and time:
         df = pd.read_csv('default_datasets/default_group_time.csv', index_col=False)
-    else:
+    elif radio_value == 'speaker' and time:
         df = pd.read_csv('default_datasets/default_speaker_time.csv', index_col=False)
+    elif radio_value == 'group' and metadata:
+        df = pd.read_csv('default_datasets/default_group_meta.csv', index_col=False)
+    elif radio_value == 'speaker' and metadata:
+        df = pd.read_csv('default_datasets/default_speaker_meta.csv', index_col=False)
 
     return df
 
  
-def get_df(jsonified_user_id, radio_value, time):
+def get_df(jsonified_user_id, radio_value, time, metadata):
     """
     Loads and returns the correct DataFrame according to the input values
 
     :param jsonified_user_id: The user session ID
     :param radio_value: The selected radio button value ("group" or "speaker")
     :param time: Whether or not the DataFrame includes time values (True or False)
+    :param metadata: Whether or not the DataFrame includes metadata values (True or False)
     :return: Selected DataFrame
     """
     df = pd.DataFrame()
@@ -298,17 +317,21 @@ def get_df(jsonified_user_id, radio_value, time):
     if jsonified_user_id is not None:
         user_id = json.loads(jsonified_user_id)
 
-    if user_id is None:
+    if user_id is None: 
         # Default dataset
-        df = get_default(radio_value, time)
-    elif radio_value == 'group' and not time:
+        df = get_default(radio_value, time, metadata)
+    elif radio_value == 'group' and not time and not metadata:
         df = pickle.loads(zlib.decompress(r.get(f"{user_id}_group_df")))
-    elif radio_value == 'speaker' and not time: 
+    elif radio_value == 'speaker' and not time and not metadata: 
         df = pickle.loads(zlib.decompress(r.get(f"{user_id}_speaker_df")))
     elif radio_value == 'group' and time:
         df = pickle.loads(zlib.decompress(r.get(f"{user_id}_group_time_df")))
-    else:
+    elif radio_value == 'speaker' and time:
         df = pickle.loads(zlib.decompress(r.get(f"{user_id}_speaker_time_df")))
+    elif radio_value == 'group' and metadata:
+        df = pickle.loads(zlib.decompress(r.get(f"{user_id}_group_meta_df")))
+    elif radio_value == 'speaker' and metadata:
+        df = pickle.loads(zlib.decompress(r.get(f"{user_id}_speaker_meta_df")))
 
     return df
 
@@ -348,7 +371,7 @@ def populate_line_dropdown(jsonified_user_id, radio_value, dropdown_value):
     :param radio_value: The selected radio button value ("group" or "speaker")
     :return: A list of id values
     """
-    df = get_df(jsonified_user_id, radio_value, True)
+    df = get_df(jsonified_user_id, radio_value, True, False)
 
     if radio_value == 'speaker':
         options = list(set(df['speaker_id']))
@@ -388,7 +411,7 @@ def populate_line_table(radio_value, selected_id, selected_feat, jsonified_user_
     if selected_id is None or selected_feat is None:
         return go.Figure()
 
-    df = get_df(jsonified_user_id, radio_value, True)
+    df = get_df(jsonified_user_id, radio_value, True, False)
     id_header = df.columns[1] # Either Group_ID or Speaker_ID
     selected_feat = selected_feat.replace(" ", "_")
     feat_df = df[[id_header, 'time', selected_feat]]
@@ -438,7 +461,7 @@ def populate_timeline_dropdown(jsonified_user_id, dropdown_value):
     :param jsonified_user_id: The user session ID
     :return: A list of conversation ids
     """
-    df = get_df(jsonified_user_id, 'group', True)
+    df = get_df(jsonified_user_id, 'group', True, False)
     options = list(set(df['group_id']))
     options.sort()
 

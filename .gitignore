@@ -4,3 +4,4 @@ __pycache__
 pages/__pycache__
 plotly-cloud.toml
 cache
+venv
