@@ -211,7 +211,6 @@ def process_zip(user_zip_path, filename, datafarm):
         
         # Grab unzipped contents
         unzipped_path = path_to_user_folder + "/" + os.listdir(path_to_user_folder)[0]
-        print('unzipped path: ', unzipped_path)
         try:
             datafarm = DataFarm(unzipped_path)
             shutil.rmtree(path_to_user_folder)
@@ -256,7 +255,6 @@ def process_dropdown(dropdown_selection, datafarm):
     os.remove(path_to_user_folder + f'/{dropdown_selection}')
     folder_name = os.listdir(path_to_user_folder)[0]
     unzipped_path = path_to_user_folder + f'/{folder_name}'
-    print('unzipped path: ', unzipped_path)
     try:
         datafarm = DataFarm(unzipped_path)
         shutil.rmtree(path_to_user_folder) 
@@ -386,13 +384,11 @@ def pre_process_data(set_progress, n_clicks, dropdown_selection, user_zip_path, 
 
     if user_zip_path is not None:
         corpus_name = filename[:-4].replace("-", " ").replace("_", " ").title() # Remove zip extension 
-        print("corpus_name: ", corpus_name)
         datafarm = process_zip(user_zip_path, filename, datafarm)
     elif dropdown_selection is not None: 
         corpus_name = dropdown_selection
         datafarm = process_dropdown(dropdown_selection, datafarm)
     
-    print("datafarm: ", datafarm)
     # If instantiation returned an error code
     if type(datafarm) is list:
         return None, None, datafarm, None # Datafarm contains an error message
@@ -424,14 +420,6 @@ def pre_process_data(set_progress, n_clicks, dropdown_selection, user_zip_path, 
     save_files(speaker_df, group_df, speaker_time_df, group_time_df, utt_df, speaker_meta_df, group_meta_df)
     
     set_progress((100, "100%"))
-
-    speaker_meta_df.to_csv("default_datasets/default_speaker_meta.csv")
-    group_meta_df.to_csv("default_datasets/default_group_meta.csv")
-    speaker_df.to_csv("default_datasets/default_speaker.csv")
-    group_df.to_csv("default_datasets/default_group.csv")
-    speaker_time_df.to_csv("default_datasets/default_speaker_time.csv")
-    group_time_df.to_csv("default_datasets/default_group_time.csv")
-    utt_df.to_csv("default_datasets/default_utt.csv")
 
     return json.dumps(str(user_id)), json.dumps(str(corpus_name)), [''], '/overview'
    
