@@ -555,7 +555,9 @@ def populate_box_plot(radio_value, selected_feat, jsonified_user_id, metadata):
     metadata = metadata.iloc[:, 1:] # Remove the ID column
     metadata = metadata.convert_dtypes()
     
-    df = pd.concat([df, metadata], axis=1)
+    print(df)
+    print(metadata)
+    df = pd.concat([df.reset_index(drop=True), metadata.reset_index(drop=True)], axis=1)
     metadata_list = metadata.columns.tolist()
 
     if selected_feat not in metadata_list:
