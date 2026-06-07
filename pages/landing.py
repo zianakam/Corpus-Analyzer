@@ -17,6 +17,7 @@ import redis
 import pickle
 import zlib
 import dash_bootstrap_components as dbc
+import time
 
 
 # Home Page
@@ -377,6 +378,8 @@ def pre_process_data(set_progress, n_clicks, dropdown_selection, user_zip_path, 
     if n_clicks is None: 
         raise PreventUpdate
 
+    start = time.time()
+    print("Started")
     datafarm = None
     corpus_name = ''
 
@@ -388,12 +391,14 @@ def pre_process_data(set_progress, n_clicks, dropdown_selection, user_zip_path, 
     elif dropdown_selection is not None: 
         corpus_name = dropdown_selection
         datafarm = process_dropdown(dropdown_selection, datafarm)
+        print("Processed dropdown: ", time.time() - start)
     
     # If instantiation returned an error code
     if type(datafarm) is list:
         return None, None, datafarm, None # Datafarm contains an error message
     elif type(datafarm.corpus) is list:
         return None, None, datafarm.corpus, None # Datafarm.corpus contains an error message
+    print("Instatiated datafarm: ", time.time() - start)
 
     set_progress((40, "40%"))
 
@@ -404,21 +409,25 @@ def pre_process_data(set_progress, n_clicks, dropdown_selection, user_zip_path, 
     speaker_df, speaker_time_df, speaker_meta_df = datafarm.create_speaker_dfs() 
     speaker_df = datafarm.clean_columns(speaker_df)
     speaker_time_df = datafarm.clean_columns(speaker_time_df)
+    print("Processed speaker dataframes: ", time.time() - start)
 
     set_progress((80, "80%"))
 
     group_df, group_time_df, group_meta_df = datafarm.create_group_dfs(speaker_df, speaker_time_df)
     group_df = datafarm.clean_columns(group_df)
     group_time_df = datafarm.clean_columns(group_time_df)
+    print("Processed group dataframes: ", time.time() - start)
 
     set_progress((90, "90%"))
 
     utt_df = datafarm.corpus.get_utterances_dataframe()
     utt_df = datafarm.format_utt_df(utt_df)
     utt_df = datafarm.clean_columns(utt_df)
+    print("Processed utt dataframe: ", time.time() - start)
 
     save_files(speaker_df, group_df, speaker_time_df, group_time_df, utt_df, speaker_meta_df, group_meta_df)
-    
+    print("Saved files: ", time.time() - start)
+
     set_progress((100, "100%"))
 
     return json.dumps(str(user_id)), json.dumps(str(corpus_name)), [''], '/overview'
