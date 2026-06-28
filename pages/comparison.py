@@ -628,6 +628,7 @@ def populate_scatterplot(jsonified_user_id, radio_value, dropdown_x_value, dropd
     :return: A scatterplot
     """
     df = get_df(jsonified_user_id, radio_value, False, False)
+    df = df.reset_index(drop=True)
     metadata = get_df(jsonified_user_id, radio_value, False, True)
     metadata = metadata.iloc[:, 1:] # Remove the ID column
     
