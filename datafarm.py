@@ -31,17 +31,15 @@ class DataFarm():
 
     def __init__(self, unzipped_path):
         """
-        :param zip_path: Path to uploaded Corpus
-        :param path_to_user_folder:
+        :param unzipped_path: Path to uploaded Corpus
         :return: Set and pre-processed Corpus object
         """
         self.corpus = Corpus(filename=unzipped_path)
 
-
     def pre_process(self):
         """
         Pre-processes utterances in Corpus object
-        """ 
+        """
         # Psycholinguistics
         clean_prep_compute = ConvokitPipeline([
             ('clean', TextProcessor(self.clean_text, output_field='clean_text')),
@@ -153,7 +151,11 @@ class DataFarm():
         speaker_df.reset_index(drop=True, inplace=True)
         speaker_df = speaker_df.fillna(0) 
 
-        speaker_time_df.reset_index(drop=False, inplace=True)
+        if 'time' in speaker_time_df.columns:
+            speaker_time_df.reset_index(drop=True, inplace=True)
+        else:
+            speaker_time_df.reset_index(drop=False, inplace=True)
+
         # Remove extra apostrophes from last columns
         psycho_cols = ['meta.age_of_acquisition', 'meta.concreteness', 'meta.familiarity', 'meta.imageability']
         speaker_time_df[psycho_cols] = speaker_time_df[psycho_cols].astype(str).replace("'", "", regex=True) 
@@ -235,7 +237,7 @@ class DataFarm():
             scores = utt_df.groupby("time", observed=False)[self.feature_list]
             scores = scores.mean().round(2)
             scores.insert(loc=0, column='speaker_id', value=speaker.id)
-            
+        
         return scores
     
     
@@ -335,7 +337,10 @@ class DataFarm():
         group_meta_df.reset_index(drop=True, inplace=True)
         group_meta_df.insert(0, 'group_id', group_meta_df.pop('group_id'))
         
-        group_time_df.reset_index(drop=False, inplace=True)
+        if 'time' in group_time_df.columns:
+            group_time_df.reset_index(drop=True, inplace=True)
+        else:
+            group_time_df.reset_index(drop=False, inplace=True)
         
         return group_df, group_time_df, group_meta_df
     
@@ -373,6 +378,17 @@ class DataFarm():
         :param conversation: The "group" (conversation) Convokit object 
         :return: Linguistic feature scores
         """
+        # Grab just the feature scores
+        speaker_features = speaker_df.drop(['time', 'speaker_id'], inplace=False, axis=1)
+        # If all feature scores are empty
+        if (speaker_features == 0).all(axis=None):
+            # Return DataFrame with 0 values for all feature scores
+            scores = pd.DataFrame(0, index=np.arange(5), columns=self.feature_list)
+            scores.insert(loc=0, column='group_id', value=conversation.id)
+            scores.insert(loc=1, column='time', value=np.arange(1, 6))
+
+            return scores
+
         # Filter speaker df by conversation
         filter = speaker_df["speaker_id"].isin(speakers_list)
         filtered_df = speaker_df[filter]
@@ -410,7 +426,7 @@ class DataFarm():
         utt_df["timestamp"] = vectorized_format(utt_df["timestamp"])
 
         utt_df = utt_df.convert_dtypes()
-
+        
         return utt_df
     
 

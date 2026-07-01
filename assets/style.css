@@ -263,6 +263,18 @@ a:visited {
     padding-top: 15px;
 }
 
+.progress .progress-bar {
+    color: black;
+    overflow: visible;
+    padding: 5px;
+}
+
+.progress {
+    height: 20px !important;
+    text-align: center;
+}
+
+
 /*******************/
 /** Overview Page **/
 /*******************/
@@ -437,6 +449,11 @@ a:visited {
 #conversation_timeline_graph {
     margin-right: 24px;
     height: 350px;
+}
+
+#series_error_message {
+    display: hidden;
+    padding-bottom: 10px;
 }
 
 /********************/

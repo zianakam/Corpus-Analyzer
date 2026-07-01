@@ -166,11 +166,17 @@ layout = html.Div(
                                             ),
                                         ],
                                         className="dropdown_col"
-                                    )
+                                    ),
 
                                     ],
                                     className="dropdown_row",
                                 ),
+
+                                html.Div(
+                                    children=[],
+                                    id="series_error_message"
+                                )
+
                             ],
                         className="graph_dropdown"
                         ),
@@ -412,7 +418,7 @@ def populate_line_table(radio_value, selected_id, selected_feat, jsonified_user_
         return go.Figure()
 
     df = get_df(jsonified_user_id, radio_value, True, False)
-    id_header = df.columns[1] # Either Group_ID or Speaker_ID
+    id_header = radio_value + '_id' # Either Group_ID or Speaker_ID
     selected_feat = selected_feat.replace(" ", "_")
     feat_df = df[[id_header, 'time', selected_feat]]
     line_graph = go.Figure()
@@ -533,5 +539,21 @@ def populate_timeline(selected_convo, jsonified_user_id):
 
     return fig
 
+@dash.callback(
+    Output(component_id="series_error_message", component_property="children"),
+    Output(component_id='series_error_message', component_property='style'),
+    Input(component_id='jsonified_user_id', component_property='data'),
+    Input(component_id='radio_buttons', component_property='value'), 
+)
+def display_error_message(jsonified_user_id, radio_value):
+    id = radio_value + '_id' # Either speaker_id or group_id
+    df = get_df(jsonified_user_id, radio_value, True, False)
+    features = df.drop(['time', id], inplace=False, axis=1)
 
+    if (features == 0).all(axis=None):
+        return "Warning: Time series information wasn\'t calculated. " \
+        "Graphs on this page won\'t appear as expected. " \
+        "If you\'d like to calculate time series data, please add 'timestamp' " \
+        "metadata to the utterances in your dataset. ", {'display': 'block'}
 
+    return '', {}

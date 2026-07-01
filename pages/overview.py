@@ -627,7 +627,7 @@ def populate_text_category(value):
         'language of another speaker in a conversation. ' \
         'Extracted with the use of the ConvoKit toolkit and averaged across all of each speaker\'s interactions. '
     elif value == 'psycholinguistic features':
-        text = 'A linguistic strategy to measure the the interrelation between linguistic factors and ' \
+        text = 'A linguistic strategy to measure the interrelation between linguistic factors and ' \
         'psychological aspects. Extracted with the use of the MRC Psycholinguistics Database.'
 
     return text

@@ -4,6 +4,7 @@ from dash_iconify import DashIconify
 from datafarm import *
 from zipfile import ZipFile
 from pathlib import Path
+from capture import * 
 
 import json
 import dash, os
@@ -18,6 +19,7 @@ import pickle
 import zlib
 import dash_bootstrap_components as dbc
 import time
+import sys
 
 
 # Home Page
@@ -168,19 +170,23 @@ layout = html.Div(
         html.Div(
             children=[
                 dbc.Progress(
-                    id="progress_bar", 
-                        value=0, striped=True, 
-                        animated=True, 
-                        style={"visibility":"hidden"}
-                    )
+                    id="progress_bar",
+                    className="progress",
+                    value=0, 
+                    striped=True, 
+                    animated=True, 
+                    style={
+                        "visibility":"hidden",
+                        },
+                )
             ],
             style={
-                "width": "30%",
-                "height": "30px",
+                "height": "20px !important",
+                "width": "40%",
                 "margin": "0 auto",
-                "margin-top": "-15px",
+                "margin-top": "-5px",
                 "margin-bottom": "80px",
-                },
+            },
         ),
 
     ],
@@ -188,15 +194,15 @@ layout = html.Div(
 
 # Functions 
 
-def process_zip(user_zip_path, filename, datafarm):
+def process_zip(user_zip_path, filename):
     """
     Processes the zip file uploaded by the user
 
     :param user_zip_path: The file path to the zip file
     :param filename: The name of the zip file
-    :param datafarm: An Object to be instantiated
     :return: The instantiated Object or an error message
     """
+    datafarm = None
     content_type, content_string = user_zip_path.split(',')
     decoded = base64.b64decode(content_string)
     zip_str = io.BytesIO(decoded)
@@ -229,14 +235,14 @@ def process_zip(user_zip_path, filename, datafarm):
     return datafarm
 
 
-def process_dropdown(dropdown_selection, datafarm):
+def process_dropdown(dropdown_selection):
     """
     Processes the dropdown selection by the user
 
     :param dropdown_selection: The file selected
-    :param datafarm: An Object to be instantiated
     :return: The instantiated Object or an error message
     """
+    datafarm = None
     dropdown_selection = dropdown_selection.replace(' ', '_') + '.zip'
 
     if not Path(path_to_user_folder).exists():
@@ -380,43 +386,60 @@ def pre_process_data(set_progress, n_clicks, dropdown_selection, user_zip_path, 
 
     datafarm = None
     corpus_name = ''
-
-    set_progress((20, "20%"))
+    current_value = 0
 
     if user_zip_path is not None:
+        set_progress((current_value, "Validating corpus..."))
         corpus_name = filename[:-4].replace("-", " ").replace("_", " ").title() # Remove zip extension 
-        datafarm = process_zip(user_zip_path, filename, datafarm)
+        datafarm = process_zip(user_zip_path, filename)
     elif dropdown_selection is not None: 
+        set_progress((current_value, "Grabbing corpus..."))
         corpus_name = dropdown_selection
-        datafarm = process_dropdown(dropdown_selection, datafarm)
-    
+        datafarm = process_dropdown(dropdown_selection)
+
+    current_value += 5
+    set_progress((current_value, "Processing corpus..."))
+
     # If instantiation returned an error code
     if type(datafarm) is list:
         return None, None, datafarm, None # Datafarm contains an error message
     elif type(datafarm.corpus) is list:
         return None, None, datafarm.corpus, None # Datafarm.corpus contains an error message
 
-    set_progress((40, "40%"))
+    current_value += 5
+    set_progress((current_value, "Cleaning corpus..."))
 
-    datafarm.pre_process()
+    old_stdout = sys.stdout
+    # Capture stdout data from ConvoKit function & pass to loading bar
+    try:
+        sys.stdout = ProgressCapture(set_progress, current_value)
+        datafarm.pre_process()  
+    finally:
+        sys.stdout = old_stdout
 
-    set_progress((60, "60%"))
+    current_value += 55
+    set_progress((current_value, "Calculating speaker statistics..."))
 
     speaker_df, speaker_time_df, speaker_meta_df = datafarm.create_speaker_dfs() 
     speaker_df = datafarm.clean_columns(speaker_df)
     speaker_time_df = datafarm.clean_columns(speaker_time_df)
 
-    set_progress((80, "80%"))
+    current_value += 10
+    set_progress((current_value, "Calculating group statistics..."))
 
     group_df, group_time_df, group_meta_df = datafarm.create_group_dfs(speaker_df, speaker_time_df)
     group_df = datafarm.clean_columns(group_df)
     group_time_df = datafarm.clean_columns(group_time_df)
 
-    set_progress((90, "90%"))
+    current_value += 10
+    set_progress((current_value, "Calculating utterance statistics..."))
 
     utt_df = datafarm.corpus.get_utterances_dataframe()
     utt_df = datafarm.format_utt_df(utt_df)
     utt_df = datafarm.clean_columns(utt_df)
+
+    current_value += 10
+    set_progress((current_value, "Saving..."))
 
     save_files(speaker_df, group_df, speaker_time_df, group_time_df, utt_df, speaker_meta_df, group_meta_df)
 
