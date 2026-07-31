@@ -139,8 +139,10 @@ class DataFarm():
             speaker_df = pd.concat([speaker_df, individ_scores], axis=0)
 
             time_scores = self.calc_time_scores(speaker, utt_df)
-            speaker_time_df = pd.concat([speaker_time_df, time_scores], axis=0)
+            if not 'time' in time_scores.columns:
+                time_scores.reset_index(drop=False, inplace=True)
 
+            speaker_time_df = pd.concat([speaker_time_df, time_scores], axis=0)
             metadata = self.get_metadata(speaker, 'speaker')
             speaker_meta_df = pd.concat([speaker_meta_df, metadata], axis=0)
 
@@ -150,11 +152,8 @@ class DataFarm():
 
         speaker_df.reset_index(drop=True, inplace=True)
         speaker_df = speaker_df.fillna(0) 
-
-        if 'time' in speaker_time_df.columns:
-            speaker_time_df.reset_index(drop=True, inplace=True)
-        else:
-            speaker_time_df.reset_index(drop=False, inplace=True)
+   
+        speaker_time_df.reset_index(drop=True, inplace=True)
 
         # Remove extra apostrophes from last columns
         psycho_cols = ['meta.age_of_acquisition', 'meta.concreteness', 'meta.familiarity', 'meta.imageability']
@@ -213,9 +212,7 @@ class DataFarm():
 
         if utt_df["timestamp"].isnull().all():
             # Return DataFrame with 0 values for all feature scores
-            scores = pd.DataFrame(0, index=np.arange(5), columns=self.feature_list)
-            scores.insert(loc=0, column='speaker_id', value=utt_df.index[0])
-            scores.insert(loc=1, column='time', value=np.arange(1, 6))
+            scores = self.set_blank_df(utt_df)
         else: 
             # Fill missing values
             utt_df["timestamp"] = utt_df["timestamp"].fillna("0")
@@ -227,16 +224,19 @@ class DataFarm():
 
             # Sort data into those 5 sections 
             bins = [utt_df["timestamp"].min()] + [utt_df["timestamp"].min() + i * interval for i in range(1, 6)]
-            utt_df["time"] = pd.cut(utt_df["timestamp"], bins=bins, labels=[1, 2, 3, 4, 5], include_lowest=True)
+            try:
+                utt_df["time"] = pd.cut(utt_df["timestamp"], bins=bins, labels=[1, 2, 3, 4, 5], include_lowest=True)
+            except ValueError: # Insufficient timestamp data -- return 0
+                return self.set_blank_df(utt_df)
 
             # Split politeness strategies features into their own separate columns
             politeness_strategies = pd.DataFrame(utt_df['meta.politeness_strategies'].tolist(), index=utt_df.index)
             utt_df = pd.concat([utt_df.drop("meta.politeness_strategies", axis=1), 
                                     politeness_strategies], axis=1)
-            
             scores = utt_df.groupby("time", observed=False)[self.feature_list]
             scores = scores.mean().round(2)
             scores.insert(loc=0, column='speaker_id', value=speaker.id)
+            scores = scores.fillna(0.0)
         
         return scores
     
@@ -278,6 +278,9 @@ class DataFarm():
         :return: Formatted timestamp
         """
         pattern = '{:02d}:{:02d}:{:04.01f}'
+        
+        timestamp = timestamp.decode("utf-8") if isinstance(timestamp, bytes) else str(timestamp)
+
         match = re.match(pattern, timestamp)
 
         if match:
@@ -343,7 +346,7 @@ class DataFarm():
             group_time_df.reset_index(drop=False, inplace=True)
         
         return group_df, group_time_df, group_meta_df
-    
+
 
     def calc_group_scores(self, speaker_df, speakers_list, conversation):
         """
@@ -449,3 +452,13 @@ class DataFarm():
         
         return df
     
+    
+    def set_blank_df(self, utt_df):
+        scores = pd.DataFrame()
+
+        # Return DataFrame with 0 values for all feature scores
+        scores = pd.DataFrame(0, index=np.arange(5), columns=self.feature_list)
+        scores.insert(loc=0, column='speaker_id', value=utt_df.index[0])
+        scores.insert(loc=1, column='time', value=np.arange(1, 6))
+
+        return scores

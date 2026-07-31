@@ -554,6 +554,6 @@ def display_error_message(jsonified_user_id, radio_value):
         return "Warning: Time series information wasn\'t calculated. " \
         "Graphs on this page won\'t appear as expected. " \
         "If you\'d like to calculate time series data, please add 'timestamp' " \
-        "metadata to the utterances in your dataset. ", {'display': 'block'}
+        "metadata to the utterances in your dataset and ensure it\'s properly formatted. ", {'display': 'block'}
 
     return '', {}
