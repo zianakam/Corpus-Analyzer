@@ -8,7 +8,6 @@ from capture import *
 
 import json
 import dash, os
-import time
 import uuid
 import shutil
 import base64
@@ -18,7 +17,6 @@ import redis
 import pickle
 import zlib
 import dash_bootstrap_components as dbc
-import time
 import sys
 
 

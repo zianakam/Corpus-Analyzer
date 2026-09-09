@@ -36,18 +36,16 @@ class DataFarm():
         """
         self.corpus = Corpus(filename=unzipped_path)
 
+
     def pre_process(self):
         """
         Pre-processes utterances in Corpus object
         """
         # Psycholinguistics
-        clean_prep_compute = ConvokitPipeline([
-            ('clean', TextProcessor(self.clean_text, output_field='clean_text')),
-            ('prep', TextProcessor(proc_fn=self.prep_text, output_field='psycho_text')),
-            ('parse', TextProcessor(proc_fn=self.psycho_utt_computation, input_field='psycho_text', 
-                output_field=['age_of_acquisition', 'concreteness', 'familiarity', 'imageability']))
-            ])
-        self.corpus = clean_prep_compute.transform(self.corpus)    
+        compute_psycho = TextProcessor(proc_fn=self.psycho_utt_computation, 
+                output_field=['age_of_acquisition', 'concreteness', 'familiarity', 'imageability'], 
+                verbosity=25000)
+        self.corpus = compute_psycho.transform(self.corpus)    
 
         # Politeness Strategies
         self.corpus = self.ps_parser.transform(self.corpus)
@@ -55,19 +53,6 @@ class DataFarm():
 
         # Coordination
         self.coord.fit_transform(self.corpus)
-
-
-    def clean_text(self, text):
-        """
-        Removes double quotation marks from text
-
-        :param text: The text to process
-        :return: The processed text
-        """
-        # Affects feature extraction for non-prepped text
-        text = str(text).strip('\"')
-
-        return text
 
 
     def prep_text(self, text):
@@ -100,7 +85,7 @@ class DataFarm():
         # Find words in text that have a psycholinguistic score
         found_words = []
 
-        for word in text:
+        for word in self.prep_text(text):
             if word in self.psycho_df.index:
                 found_words.append(word)    
 
@@ -117,8 +102,8 @@ class DataFarm():
         average = average.round(2)
 
         return average
-    
 
+    
     def create_speaker_dfs(self):
         """
         Creates Dataframe of feature scores for speakers overall and speakers 
@@ -420,7 +405,7 @@ class DataFarm():
 
         # Re-combine into original df, drop irrelevant columns  
         utt_df = pd.concat([utt_df.drop(['meta.politeness_strategies', 'meta.politeness_markers',
-                                         'meta.parsed', 'meta.liwc-categories', 'meta.psycho_text', 'vectors'], axis=1), 
+                                         'meta.parsed', 'meta.liwc-categories', 'vectors'], axis=1), 
                                 ps_feats, ps_markers], axis=1)
 
         # Format timestamp values

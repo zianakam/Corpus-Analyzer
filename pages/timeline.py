@@ -1,5 +1,4 @@
 from dash import dcc, html, dash_table, Input, Output
-from dash.exceptions import PreventUpdate
 from datetime import timedelta
 
 import dash_bootstrap_components as dbc
