@@ -1,6 +1,5 @@
 from convokit import Corpus, TextParser, PolitenessStrategies, Coordination
 from convokit.text_processing import TextProcessor
-from convokit.convokitPipeline import ConvokitPipeline
 from datetime import datetime
 
 import pandas as pd
@@ -8,6 +7,7 @@ import re
 import contractions
 import numpy as np
 import datetime
+
 
 class DataFarm():
     feature_list = ['feature_politeness_==Please==', 'feature_politeness_==Please_start==', 
@@ -45,12 +45,12 @@ class DataFarm():
         compute_psycho = TextProcessor(proc_fn=self.psycho_utt_computation, 
                 output_field=['age_of_acquisition', 'concreteness', 'familiarity', 'imageability'], 
                 verbosity=25000)
-        self.corpus = compute_psycho.transform(self.corpus)    
+        self.corpus = compute_psycho.transform(self.corpus)  
 
         # Politeness Strategies
         self.corpus = self.ps_parser.transform(self.corpus)
         self.corpus = self.ps.transform(self.corpus, markers=True) 
-
+        
         # Coordination
         self.coord.fit_transform(self.corpus)
 
