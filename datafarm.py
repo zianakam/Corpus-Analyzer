@@ -43,8 +43,7 @@ class DataFarm():
         """
         # Psycholinguistics
         compute_psycho = TextProcessor(proc_fn=self.psycho_utt_computation, 
-                output_field=['age_of_acquisition', 'concreteness', 'familiarity', 'imageability'], 
-                verbosity=25000)
+                output_field=['age_of_acquisition', 'concreteness', 'familiarity', 'imageability'])
         self.corpus = compute_psycho.transform(self.corpus)  
 
         # Politeness Strategies
