@@ -427,8 +427,10 @@ def get_df(jsonified_user_id, radio_value, time, metadata):
         df = pickle.loads(zlib.decompress(r.get(f"{user_id}_speaker_time_df")))
     elif radio_value == 'group' and metadata:
         df = pickle.loads(zlib.decompress(r.get(f"{user_id}_group_meta_df")))
+        df = df.convert_dtypes().select_dtypes(exclude=['object']) # Remove datatypes that are incompatible w/data table
     elif radio_value == 'speaker' and metadata:
         df = pickle.loads(zlib.decompress(r.get(f"{user_id}_speaker_meta_df")))
+        df = df.convert_dtypes().select_dtypes(exclude=['object'])
     
     return df
 

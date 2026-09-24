@@ -128,11 +128,11 @@ class DataFarm():
 
             speaker_time_df = pd.concat([speaker_time_df, time_scores], axis=0)
             metadata = self.get_metadata(speaker, 'speaker')
-            speaker_meta_df = pd.concat([speaker_meta_df, metadata], axis=0)
-
+            speaker_meta_df = pd.concat([speaker_meta_df, metadata], axis=0, ignore_index=True)
 
         speaker_meta_df.reset_index(drop=True, inplace=True)
         speaker_meta_df.insert(0, 'speaker_id', speaker_meta_df.pop('speaker_id'))
+        speaker_meta_df = speaker_meta_df.fillna(0)
 
         speaker_df.reset_index(drop=True, inplace=True)
         speaker_df = speaker_df.fillna(0) 
@@ -233,24 +233,26 @@ class DataFarm():
         :param type: The type of object ('speaker' or 'conversation')
         :return: A DataFrame of metadata
         """
-        metadata = pd.DataFrame(corpus_object.meta, index=[0])
-
-        if 'coord' in metadata.columns:
-            metadata.drop(['coord'], inplace=True, axis=1)
-
-        metadata = metadata.add_prefix('meta.')
-
-        metadata.columns = metadata.columns.str.lower()
-        metadata.columns = metadata.columns.str.replace(' ', '_')
+        metadata = pd.DataFrame(index=[0])
 
         if type == 'speaker':
             metadata['speaker_id'] = corpus_object.id
         elif type == 'conversation':
             metadata['group_id'] = corpus_object.id
 
-        metadata = metadata[:1].reset_index(drop=True)
+        try:
+            values = pd.json_normalize(corpus_object.meta) # De-nests dictionary (if needed)
+            values = values.loc[:, ~values.columns.str.startswith('coord')] # Drop coord columns
+            # Fix headers
+            values.columns = values.columns.str.lower()
+            values.columns = values.columns.str.replace(' ', '_')
+            values = values.add_prefix('meta.')
 
-        return metadata
+            metadata = pd.concat([metadata, values], axis=1)
+
+            return metadata
+        except ValueError: # Empty metadata
+            return metadata
 
 
     def format_timestamp(self, timestamp):
@@ -320,9 +322,9 @@ class DataFarm():
             metadata = self.get_metadata(conversation, 'conversation')
             group_meta_df = pd.concat([group_meta_df, metadata], axis=0)
 
-        
         group_meta_df.reset_index(drop=True, inplace=True)
         group_meta_df.insert(0, 'group_id', group_meta_df.pop('group_id'))
+        group_meta_df = group_meta_df.fillna(0)
         
         if 'time' in group_time_df.columns:
             group_time_df.reset_index(drop=True, inplace=True)
