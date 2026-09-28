@@ -51,7 +51,11 @@ class DataFarm():
         self.corpus = self.ps.transform(self.corpus, markers=True) 
         
         # Coordination
-        self.coord.fit_transform(self.corpus)
+        try:
+            self.coord.fit_transform(self.corpus)
+        except:
+            # TODO: Add notice about coord features
+            pass
 
 
     def prep_text(self, text):
@@ -264,7 +268,7 @@ class DataFarm():
         :return: Formatted timestamp
         """
         pattern = '{:02d}:{:02d}:{:04.01f}'
-        
+
         timestamp = timestamp.decode("utf-8") if isinstance(timestamp, bytes) else str(timestamp)
 
         match = re.match(pattern, timestamp)
@@ -289,8 +293,7 @@ class DataFarm():
 
                 timestamp = datetime.timedelta(hours=int(hours), minutes=int(minutes), seconds=float(seconds))
 
-                return timestamp
-            
+                return timestamp 
             except ValueError:
                 print("Unexpected timestamp format: ", timestamp)
                 return datetime.timedelta(hours=0, minutes=0, seconds=0.0)
