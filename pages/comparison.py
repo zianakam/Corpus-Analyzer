@@ -1,5 +1,6 @@
 from dash import dcc, html, dash_table, Input, Output
 from dash.exceptions import PreventUpdate
+from urllib.parse import parse_qs
 
 import dash_bootstrap_components as dbc
 import dash
@@ -30,8 +31,8 @@ feature_list = ["age of acquisition", "concreteness", "familiarity", "imageabili
 
 
 
-layout = html.Div(
-    children=[
+def layout(corpus_id=None):
+    return html.Div(children=[
         # Header
         html.Div(
             children=[
@@ -47,21 +48,21 @@ layout = html.Div(
                         children="Overview",
                         className="overview_button"
                     ),
-                    href='/overview'
+                    href=f"/overview?corpus_id={corpus_id}"
                 ),
                 dcc.Link(
                     html.Button(
                         children="Timeline",
                         className="timeline_button"
                     ),
-                    href='/timeline'
+                    href=f"/timeline?corpus_id={corpus_id}"
                 ),
                 html.Button(
                     children="Comparison",
                     className="comparison_button"
                 ),
             ],
-            className="nav"
+            className="page_nav"
         ),
         # Row Div
         html.Div(
@@ -400,7 +401,7 @@ def get_default(radio_value, time, metadata):
     return df
 
 
-def get_df(jsonified_user_id, radio_value, time, metadata):
+def get_df(jsonified_user_id, radio_value, time, metadata, corpus_id=None):
     """
     Loads and returns the correct DataFrame according to the input values
 
@@ -408,18 +409,19 @@ def get_df(jsonified_user_id, radio_value, time, metadata):
     :param radio_value: The selected radio button value ("group" or "speaker")
     :param time: Whether or not the DataFrame includes time values (True or False)
     :param metadata: Whether or not the DataFrame includes metadata values (True or False)
+    :param corpus_id: The URL query
     :return: Selected DataFrame
     """
     user_id = None
     df = pd.DataFrame()
 
-    if jsonified_user_id is not None:
+    if corpus_id == 'sample':
+        df = get_default(radio_value, time, metadata)
+        return df
+    else:
         user_id = json.loads(jsonified_user_id)
 
-    if user_id is None: 
-        # Default dataset
-        df = get_default(radio_value, time, metadata)
-    elif radio_value == 'group' and not time and not metadata:
+    if radio_value == 'group' and not time and not metadata:
         df = pickle.loads(zlib.decompress(r.get(f"{user_id}_group_df")))
     elif radio_value == 'speaker' and not time and not metadata: 
         df = pickle.loads(zlib.decompress(r.get(f"{user_id}_speaker_df")))
@@ -577,18 +579,21 @@ def populate_utterance_data(jsonified_user_id, utt_id, feature):
     Output(component_id='scatter_y_dropdown', component_property='value'),
     Input(component_id='jsonified_user_id', component_property='data'),
     Input(component_id='radio_buttons', component_property='value'),
+    Input(component_id='url', component_property='search'),
     prevent_initial_callback=True
 )
-def populate_scatter_dropdown(jsonified_user_id, radio_value):
+def populate_scatter_dropdown(jsonified_user_id, radio_value, search_str):
     """
     Populates the dropdown options for the on-hover feature
     
     :param jsonified_user_id: The user session ID
     :param radio_value: The selected radio button value ("group" or "speaker")
+    :param search_str: The URL query
     :return: A list of the feature options
     """
+    search_param = parse_qs(search_str.lstrip('?'))['corpus_id'][0] # Get Query parameter
     # Add numerical meta features to the feature selection
-    meta_df = get_df(jsonified_user_id, radio_value, False, True)  
+    meta_df = get_df(jsonified_user_id, radio_value, False, True, search_param)  
     meta_df = meta_df.iloc[:, 1:] # Remove the ID column
     meta_df = meta_df.convert_dtypes()
     numerical_cols = meta_df.select_dtypes(include=['int', 'float']).columns.tolist()
@@ -614,8 +619,9 @@ def populate_scatter_dropdown(jsonified_user_id, radio_value):
     Input(component_id='scatter_x_dropdown', component_property='value'),
     Input(component_id='scatter_y_dropdown', component_property='value'),
     Input(component_id='scatter_hover_dropdown', component_property='value'),
+    Input(component_id='url', component_property='search')
 )
-def populate_scatterplot(jsonified_user_id, radio_value, dropdown_x_value, dropdown_y_value, hover_value):
+def populate_scatterplot(jsonified_user_id, radio_value, dropdown_x_value, dropdown_y_value, hover_value, search_str):
     """
     Populates the scatterplot
 
@@ -624,11 +630,13 @@ def populate_scatterplot(jsonified_user_id, radio_value, dropdown_x_value, dropd
     :param dropdown_x_value: The selected x-axis value
     :param dropdown_y_value: The selected y-axis value
     :param hover_value: The selected value(s) to appear on-hover of a point
+    :param search_str: The URL query
     :return: A scatterplot
     """
-    df = get_df(jsonified_user_id, radio_value, False, False)
+    search_param = parse_qs(search_str.lstrip('?'))['corpus_id'][0] # Get Query parameter
+    df = get_df(jsonified_user_id, radio_value, False, False, search_param)
     df = df.reset_index(drop=True)
-    metadata = get_df(jsonified_user_id, radio_value, False, True)
+    metadata = get_df(jsonified_user_id, radio_value, False, True, search_param)
     metadata = metadata.iloc[:, 1:] # Remove the ID column
     
     df = pd.concat([df, metadata], axis=1)

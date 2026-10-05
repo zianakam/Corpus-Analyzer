@@ -1,4 +1,5 @@
 from dash import dcc, html, Input, Output, dash_table
+from urllib.parse import parse_qs
 from datafarm import *
 
 import dash_bootstrap_components as dbc
@@ -30,8 +31,8 @@ feature_list = ["age of acquisition", "concreteness", "familiarity", "imageabili
 
 # App Layout
 
-layout = html.Div(
-    children=[
+def layout(corpus_id=None):
+    return html.Div(children=[
         # Header
         html.Div(
             children=[
@@ -51,17 +52,17 @@ layout = html.Div(
                         children="Timeline",
                         className="timeline_button"
                     ),
-                    href="/timeline"
+                    href=f"/timeline?corpus_id={corpus_id}"
                 ),
                 dcc.Link(
                     html.Button(
                         children="Comparison",
                         className="comparison_button"
                     ),
-                    href='/comparison'
+                    href=f"/comparison?corpus_id={corpus_id}"
                 ),
             ],
-            className="nav"
+            className="page_nav"
         ),
         # Selected Corpus
         html.Div(
@@ -398,7 +399,7 @@ def get_default(radio_value, time, metadata):
     return df
 
 
-def get_df(jsonified_user_id, radio_value, time, metadata):
+def get_df(jsonified_user_id, radio_value, time, metadata, corpus_id=None):
     """
     Loads and returns the correct DataFrame according to the input values
 
@@ -406,18 +407,19 @@ def get_df(jsonified_user_id, radio_value, time, metadata):
     :param radio_value: The selected radio button value ("group" or "speaker")
     :param time: Whether or not the DataFrame includes time values (True or False)
     :param metadata: Whether or not the DataFrame includes metadata values (True or False)
+    :param corpus_id: The URL query
     :return: Selected DataFrame
     """
     df = pd.DataFrame()
     user_id = None
 
-    if jsonified_user_id is not None:
+    if corpus_id == 'sample':
+        df = get_default(radio_value, time, metadata)
+        return df
+    else:
         user_id = json.loads(jsonified_user_id)
     
-    if user_id is None: 
-        # Default dataset
-        df = get_default(radio_value, time, metadata)
-    elif radio_value == 'group' and not time and not metadata:
+    if radio_value == 'group' and not time and not metadata:
         df = pickle.loads(zlib.decompress(r.get(f"{user_id}_group_df")))
     elif radio_value == 'speaker' and not time and not metadata: 
         df = pickle.loads(zlib.decompress(r.get(f"{user_id}_speaker_df")))
@@ -438,10 +440,20 @@ def get_df(jsonified_user_id, radio_value, time, metadata):
 
 @dash.callback(
     Output(component_id='selected_corpus', component_property='children'),
-    Input(component_id='corpus_name', component_property='data')
+    Input(component_id='corpus_name', component_property='data'),
+    Input(component_id='url', component_property='search')
 )
-def populate_corpus_view(corpus_name):
-    if corpus_name is None:
+def populate_corpus_view(corpus_name, search_str):
+    """
+    Populates the name of the dataset
+
+    :param corpus_name: The corpus name
+    :param search_str: The URL query
+    :return: The corpus name
+    """
+    corpus_id = parse_qs(search_str.lstrip('?'))['corpus_id'][0] # Get Query parameter
+
+    if corpus_id == 'sample':
         # Default dataset
         return 'Group Affect and Performance (GAP) Corpus' 
     else:
@@ -453,25 +465,29 @@ def populate_corpus_view(corpus_name):
     Input(component_id='jsonified_user_id', component_property='data'),
     Input(component_id='radio_buttons', component_property='value'),
     Input(component_id='_pages_location', component_property="pathname"),
-    Input(component_id='metadata_check', component_property='value')
+    Input(component_id='metadata_check', component_property='value'),
+    Input(component_id='url', component_property='search')
 )
-def populate_table(jsonified_user_id, radio_value, pathname, metadata):
+def populate_table(jsonified_user_id, radio_value, pathname, metadata, search_str):
     """
     Populates the table component
 
     :param jsonified_user_id: The user session ID
     :param radio_value: The selected radio value ("group" or "speaker")
     :param pathname: The current page path
+    :param metadata: Whether or not the DataFrame includes metadata values (True or False)
+    :param search_str: The URL query
     :return: Dictionary of the selected value
     """
     df = pd.DataFrame()
+    search_param = parse_qs(search_str.lstrip('?'))['corpus_id'][0] # Get Query parameter
 
     if pathname == "/timeline": # Return Time DataFrame
-        df = get_df(jsonified_user_id, radio_value, True, False)
+        df = get_df(jsonified_user_id, radio_value, True, False, search_param)
     elif not metadata: # Return normal DataFrame
-        df = get_df(jsonified_user_id, radio_value, False, False)
-    else: # Return normal DataFrame + metadata
-        df = get_df(jsonified_user_id, radio_value, False, True)
+        df = get_df(jsonified_user_id, radio_value, False, False, search_param)
+    else: # Return metadata
+        df = get_df(jsonified_user_id, radio_value, False, True, search_param)
 
     return df.to_dict('records')
     
@@ -511,18 +527,20 @@ def populate_stat_values(jsonified_user_id):
     Output(component_id='box_plot_dropdown', component_property='value'),
     Input(component_id='jsonified_user_id', component_property='data'),
     Input(component_id='radio_buttons', component_property='value'),
-    Input(component_id='metadata_check', component_property='value')
+    Input(component_id='url', component_property='search')
 )
-def populate_box_plot_dropdown(jsonified_user_id, radio_value, metadata):
+def populate_box_plot_dropdown(jsonified_user_id, radio_value, search_str):
     """
     Populate the dropdown of feature listings for the box plot
 
     :param jsonified_user_id: The user session ID
     :param radio_value: The selected radio button value ("group" or "speaker")
-    :param metadata: Whether or not the DataFrame includes metadata values (True or False)
+    :param search_str: The URL query
     :return: A list of features from the selected DataFrame
     """
-    meta_df = get_df(jsonified_user_id, radio_value, False, True)
+    search_param = parse_qs(search_str.lstrip('?'))['corpus_id'][0] # Get Query parameter
+
+    meta_df = get_df(jsonified_user_id, radio_value, False, True, search_param)
     meta_df = meta_df.iloc[:, 1:] # Remove ID column
     meta_df = meta_df.convert_dtypes()
     numerical_cols = meta_df.select_dtypes(include=['int', 'float']).columns.tolist() 
@@ -537,9 +555,10 @@ def populate_box_plot_dropdown(jsonified_user_id, radio_value, metadata):
     Input(component_id='radio_buttons', component_property='value'), 
     Input(component_id='box_plot_dropdown', component_property='value'), 
     Input(component_id='jsonified_user_id', component_property='data'),
-    Input(component_id='metadata_check', component_property='value')
+    Input(component_id='metadata_check', component_property='value'),
+    Input(component_id='url', component_property='search')
 )
-def populate_box_plot(radio_value, selected_feat, jsonified_user_id, metadata):
+def populate_box_plot(radio_value, selected_feat, jsonified_user_id, metadata, search_str):
     """
     Populates the box plot 
 
@@ -547,13 +566,16 @@ def populate_box_plot(radio_value, selected_feat, jsonified_user_id, metadata):
     :param selected_feat: The selected linguistic feature
     :param jsonified_user_id: The user session ID
     :param metadata: Whether or not the DataFrame includes metadata values (True or False)
+    :param search_str: The URL query
     :return: A box plot figure
     """
     if selected_feat is None:
         return px.box()
-    
-    df = get_df(jsonified_user_id, radio_value, False, False)
-    metadata = get_df(jsonified_user_id, radio_value, False, True)
+
+    search_param = parse_qs(search_str.lstrip('?'))['corpus_id'][0] # Get Query parameter
+
+    df = get_df(jsonified_user_id, radio_value, False, False, search_param)
+    metadata = get_df(jsonified_user_id, radio_value, False, True, search_param)
     metadata = metadata.iloc[:, 1:] # Remove the ID column
     metadata = metadata.convert_dtypes()
     

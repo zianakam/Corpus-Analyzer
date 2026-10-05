@@ -1,6 +1,5 @@
-from dash import dcc, html, Input, Output, State
+from dash import dcc, html, Input, Output, State, ctx
 from dash.exceptions import PreventUpdate
-from dash_iconify import DashIconify
 from datafarm import *
 from zipfile import ZipFile
 from pathlib import Path
@@ -50,120 +49,286 @@ def get_corpus_list():
 layout = html.Div(
     children=[
 
+        html.H1(
+            children=[
+                'Corpus ',
+                html.Span('Analyzer', id='header_analyzer', className='title'),
+            ],
+            className='title',
+        ),
+        
+        html.Div(
+            children=[
+                'An NLP Dashboard'
+            ],
+            className='subtitle'
+        ),
+        
         html.Div(
             children=[
                 html.Div(
                     children=[
-                        "An interactive dashboard for exploring conversational dynamics and linguistic features. "
-                        "Corpus Analyzer cleans, pre-processes, and extracts conversational ",
-                        "features using the ",
-                        html.A(
-                            children="ConvoKit toolkit",
-                            href="https://convokit.cornell.edu/"
-                        ),
-                        " and other feature extraction strategies. ",
+                        "Corpus analyzer is an interactive analytics dashboard with live graphing. "
+                        "It automates the process of extracting and visualizing individual "
+                        "linguistic features (or characteristics) of large text datasets, while providing "
+                        "a no-code solution for natural language processing."
                     ]
                 ),
+
+                html.Div(
+                    children=[
+                        "Powered by ",
+                        html.Img(
+                            src='assets/images/python.svg',
+                            style={
+                                'width': '15px',
+                                'margin': '5px'
+                            }
+                        ),
+                        html.A("Python • ", href='https://www.python.org/', style={'fontSize': '13px', 'color': '#91A2B1'}),
+                        html.A("ConvoKit • ", href='https://convokit.cornell.edu/', style={'fontSize': '13px'}),
+                        html.A("Dash", href='https://dash.plotly.com/', style={'fontSize': '13px'})
+                    ],
+                    style={
+                        'marginTop': '20px',
+                        'fontSize': '13px', 
+                        'color': '#91A2B1'
+                    }
+                ),
             ],
-            className='subheader',
+            className='subtext',
         ),
 
         html.Div(
             children=[
-                html.Span(
-                    "counter_1",
-                    className="material-symbols-outlined counter_1",
-                    id='counter_icon',
-                ),
-
-                dcc.Link(
-                    html.Button(
-                        [
-                            DashIconify(icon="mdi:chart-box-outline", style={"marginRight": "8px", "fontSize": "20px"}),
-                            "Preview with a Sample Dataset"
-                        ], 
-                        style={
-                            "textDecoration": "none"
-                        },
-                        id='preview_button',
-                    ),
-                    href='/overview',
-                    style={"textDecoration": "none"}
-                ),
+                'Linguistic Features'
             ],
-            id='preview'
+            style={'marginTop': '-10px'},
+            className='subtitle lined_text'
+        ),
+
+        html.Div(
+            children=['Extract meaningful insights from your conversational data.'], 
+            className='subtext'
         ),
 
         html.Div(
             children=[
-                'OR'
+                html.Div(
+                    children=[
+                        html.Img(
+                                src='assets/images/brain.svg', 
+                                style={'background': '#4F2BD9'},
+                                className='feature_image'
+                        ),
+                        html.Div(children=['Psycholinguistics'], className='feature_subtitle'),
+                        html.Div(
+                            children=['Measures the interrelation of linguistic traits and psychological aspects'],
+                            className='feature_text'
+                        )
+                    ], 
+                    className='feature_box'
+                ),
+
+                html.Div(
+                    children=[
+                        html.Img(
+                                src='assets/images/politeness.svg',
+                                style={'background': '#C04F91'}, 
+                                className='feature_image'
+                        ),
+                        html.Div('Politeness', className='feature_subtitle'),
+                        html.Div(
+                            children=['Measures the rate of conversational politeness.'],
+                            className='feature_text'
+                        )
+                    ], 
+                    className='feature_box'
+                ),
+
+                html.Div(
+                    children=[
+                        html.Img(
+                                src='assets/images/speech.svg',
+                                style={'background': '#3FA878'},
+                                className='feature_image'
+                        ),
+                        html.Div('Coordination', className='feature_subtitle'),
+                        html.Div(
+                            children=['Measures the rate of language coordination between two speakers.'],
+                            className='feature_text'
+                        )
+                    ], 
+                    className='feature_box'
+                ),
+
+                html.Div(
+                    children=[
+                        html.Img(
+                                src='assets/images/time.svg', 
+                                style={'background': "#3D91C4"},
+                                className='feature_image'
+                        ),
+                        html.Div('Longitudinal Data', className='feature_subtitle'),
+                        html.Div(
+                            children=['Measures how features change over the course of the conversation.'],
+                            className='feature_text'
+                        )
+                    ], 
+                    className='feature_box'
+                ),
             ],
-            className='or_statement'
+            className='features'
         ),
 
         html.Div(
             children=[
-                html.Span(
-                    "counter_2",
-                    className="material-symbols-outlined"
-                ),
-                'Load a corpus from ConvoKit\'s ',
-                html.A(
-                    children="website",
-                    href="https://convokit.cornell.edu/datasets.html"
-                ),
-            ], 
-            className='options_text',
-        ),
-
-        dcc.Dropdown(
-            options=get_corpus_list(),
-            id='options_dropdown'
+                'Getting Started'
+            ],
+            style={'marginTop': '30px'},
+            className='subtitle lined_text'
         ),
 
         html.Div(
-            children='OR', 
-            className='or_statement'
+            'Choose a sample dataset to explore, use a ConvoKit dataset, ' \
+            'or upload your own corpus to begin analyzing your conversations.',
+            className='subtext'
         ),
 
         html.Div(
             children=[
-                html.Span(
-                    "counter_3",
-                    className="material-symbols-outlined"
+                html.Div(
+                    children=[
+                        html.Img(
+                                src='assets/images/demo.svg', 
+                                style={'background': '#5967E8'},
+                                className='feature_image'
+                        ),
+                        html.Div('Try a Demo', style={'fontSize': '17px'}, className='feature_subtitle'),
+                        html.Div(
+                            children=['Explore the app with a pre-extracted sample corpus. No upload required.'],
+                            className='feature_text'
+                        ),
+                        dcc.Link(
+                            html.Button('Explore sample →', className='landing_button'),
+                            href='/overview?corpus_id=sample'
+                        )
+                    ],
+                    style={'width': '25%', 'height': '15%'},
+                    className='feature_box'
                 ),
-                'Upload a zipped version of your own corpus in ',
-                html.A(
-                    children="ConvoKit format ",
-                    href="https://github.com/CornellNLP/ConvoKit/blob/master/examples/corpus_from_pandas.ipynb"
-                ), 
-            ],
-            className='options_text'
-        ),
 
-        html.Div(
-            children=[
-                dcc.Upload(
-                    id='uploaded_zip',
-                    children=html.Div([
-                        'Drag and Drop or ',
-                        html.A('Select Files')
-                    ]),
-                    accept=".zip",
-                    multiple=False
+                html.Div('OR', style={'lineHeight': '215px', 'fontWeight': '600'}),
+
+                html.Div(
+                    children=[
+                        html.Img(
+                                src='assets/images/load.svg', 
+                                style={'background': '#FF6B35'},
+                                className='feature_image'
+                        ),
+                        html.Div('Load a Corpus', style={'fontSize': '17px'}, className='feature_subtitle'),
+                        html.Div(
+                            children=[
+                            'Choose a corpus from ConvoKit\'s ',
+                            html.A(
+                                children="dataset library.",
+                                href="https://convokit.cornell.edu/datasets.html",
+                                style={'fontSize': '13px', 'textDecoration': 'underline', 'color': '#60A5FA'}
+                            )],
+                            className='feature_text'
+                        ),
+                        dcc.Dropdown(
+                            options=get_corpus_list(),
+                            id='options_dropdown'
+                        ),
+                                
+                    ],
+                    style={'width': '25%', 'height': '15%'},
+                    className='feature_box'
                 ),
-            ],
-            id='upload_container'
-        ),
 
-        html.Div(id='error_message'),
+                html.Div('OR', style={'lineHeight': '215px', 'fontWeight': '600'}),
+
+                html.Div(
+                    children=[
+                        html.Img(
+                                src='assets/images/upload.svg', 
+                                style={'background': '#3D91C4'},
+                                className='feature_image'
+                        ),
+                        html.Div(
+                            children=[
+                                'Upload your Corpus',
+                                html.Span(
+                                    "info",
+                                    className="material-symbols-outlined info",
+                                    id='landing_info',
+                                    style={'cursor': 'pointer'}
+                                ),
+                                dbc.Tooltip(
+                                    dcc.Markdown("Upload a .zip file\n containing a single folder\n with your corpus.\n " \
+                                    "\n"\
+                                    "my_corpus.zip ↓\n"\
+                                    "📁 my_corpus/\n"\
+                                    "├── 📄 conversations.json\n"\
+                                    "├── 📄 corpus.json\n"\
+                                    "└── 📄 index.json\n"\
+                                    "├── 📄 speakers.json\n"\
+                                    "└── 📄 utterances.jsonl"),
+                                    target="landing_info",
+                                    placement="top",
+                                    style={'white-space':'pre'}
+                                )
+                            ], 
+                            style={'fontSize': '17px'}, className='feature_subtitle'),
+                        html.Div(
+                            children=['Upload your zipped Corpus in ',
+                            html.A(
+                                children="ConvoKit format.",
+                                href="https://github.com/CornellNLP/ConvoKit/blob/master/examples/corpus_from_pandas.ipynb",
+                                style={'fontSize': '13px', 'textDecoration': 'underline', 'color': '#60A5FA'}
+                            )
+                            ],
+                            className='feature_text'
+                        ),
+                        html.Div(
+                            children=[
+                                dcc.Upload(
+                                    id='uploaded_zip',
+                                    children=html.Div([
+                                        'Drag and Drop or ',
+                                        html.A('Select Files')
+                                    ]),
+                                    accept=".zip",
+                                    multiple=False
+                                ),
+                            ],
+                            id='upload_container'
+                        ),
+                                
+                    ],
+                    style={'width': '25%', 'height': '15%'},
+                    className='feature_box'
+                )
+            ],
+            className='features'
+        ),
 
         html.Button(
-                    'Submit', 
-                    id="submit_button", 
-                    disabled=True,
-                    style={"visibility": "visible"}
-                    ),
+            'Submit', 
+            id="submit_button", 
+            disabled=True,
+            style={"visibility": "visible", 'marginTop': '-20px'}
+        ),
+
+        html.Div(
+            children=[
+                html.Div(id='error_text'),
+                html.Button(html.Img(src='assets/images/close.svg'), id='close_button')
+            ],
+            id='error_block'
+        ),
         
         html.Div(
             children=[
@@ -172,19 +337,13 @@ layout = html.Div(
                     className="progress",
                     value=0, 
                     striped=True, 
-                    animated=True, 
-                    style={
-                        "visibility":"hidden",
-                        },
-                )
+                    animated=True,
+                    style={'marginBottom': '5px'}
+                ),
+                html.Div(id='progress_text'),
+                html.Div(id='progress_subtext')
             ],
-            style={
-                "height": "20px !important",
-                "width": "40%",
-                "margin": "0 auto",
-                "margin-top": "-5px",
-                "margin-bottom": "80px",
-            },
+            id='progress_block'
         ),
 
     ],
@@ -212,8 +371,9 @@ def process_zip(user_zip_path, filename):
         # Check for multiple files 
         if len(os.listdir(path_to_user_folder)) > 1:
             shutil.rmtree(path_to_user_folder)
-            return ['Error: Please ensure your files are stored within a single folder in your zip file and try again.']
-        
+            return [
+                    'Error: Please ensure your files are stored within a single folder in your zip file and try again.'
+                    ]
         # Grab unzipped contents
         unzipped_path = path_to_user_folder + "/" + os.listdir(path_to_user_folder)[0]
         try:
@@ -221,14 +381,20 @@ def process_zip(user_zip_path, filename):
             shutil.rmtree(path_to_user_folder)
         except FileNotFoundError:
             shutil.rmtree(path_to_user_folder) 
-            return ['Error: Please ensure files are stored within a single folder in your zip file and try again.']
+            return [
+                    'Error: Please ensure files are stored within a single folder in your zip file and try again.'
+                    ]
         except UnboundLocalError:
             shutil.rmtree(path_to_user_folder) 
-            return ['Error: Invalid Convokit object. Please try again.']
+            return [
+                'Error: Invalid Convokit object. Please try again.'
+                ]
 
     except zipfile.BadZipFile:
         shutil.rmtree(path_to_user_folder)
-        return [f'Error: {filename} is a bad zipfile. Please try again.']
+        return [
+                f'Error: {filename} is a bad zipfile. Please try again.'
+                ]
 
     return datafarm
 
@@ -265,11 +431,15 @@ def process_dropdown(dropdown_selection):
         shutil.rmtree(path_to_user_folder) 
     except FileNotFoundError:
         shutil.rmtree(path_to_user_folder) 
-        return [f'Error: Please ensure files are stored within a folder in your zip file and try again.']
+        return [
+                f'Error: Please ensure files are stored within a folder in your zip file and try again.'
+            ]
     except UnboundLocalError as e:
         print(e)
         shutil.rmtree(path_to_user_folder) 
-        return [f'Invalid Convokit object. Please try again.']
+        return [
+                f'Invalid Convokit object. Please try again.'
+            ]
 
     return datafarm
 
@@ -329,13 +499,37 @@ def update_button(dropdown_value, zipfile, filename):
         return False, 'Drag and Drop or Select Files'
     else: # Dropdown de-selected
         return True, 'Drag and Drop or Select Files'
+
+
+@dash.callback(
+    Output(component_id='error_block', component_property='style'),
+    Input(component_id='error_text', component_property='children'),
+    Input(component_id='close_button', component_property='n_clicks'),
+    prevent_initial_callback=True
+)
+def update_error_display(content, n_clicks):
+    """
+    Displays the error message when content is populated and closes it when the cancel button is pressed
+
+    :param content: The contents of the error message
+    :param n_clicks: The number of times the cancel button is selected
+    :return: Styling to make the error message visible/invisible
+    """
+    triggered = ctx.triggered_id
+
+    if triggered == 'close_button':
+        return {'display': 'none'}
+    elif triggered == 'error_text' and content:
+        return {'display': 'flex', 'justify-content': 'center'}
+
+    raise PreventUpdate
     
 
 @dash.callback(
     output=[
         Output(component_id='jsonified_user_id', component_property='data'),
         Output(component_id='corpus_name', component_property='data'),
-        Output(component_id='error_message', component_property='children'),
+        Output(component_id='error_text', component_property='children'),
         Output(component_id='url', component_property='href'),
     ],
     inputs=[
@@ -354,14 +548,15 @@ def update_button(dropdown_value, zipfile, filename):
             {"visibility": "visible"},
         ),
         (
-            Output("progress_bar", "style"),
-            {"visibility": "visible"},
-            {"visibility": "hidden"},
+            Output("progress_block", "style"),
+            {"display": "block"},
+            {"display": "none"},
         ),
     ],
     progress=[
         Output("progress_bar", "value"), 
-        Output("progress_bar", "label")
+        Output("progress_text", "children"),
+        Output('progress_subtext', 'children')
     ],
     prevent_initial_call=True,
 )
@@ -387,16 +582,16 @@ def pre_process_data(set_progress, n_clicks, dropdown_selection, user_zip_path, 
     current_value = 0
 
     if user_zip_path is not None:
-        set_progress((current_value, "Validating corpus..."))
+        set_progress((current_value, "This may take a few moments..", "Validating corpus..."))
         corpus_name = filename[:-4].replace("-", " ").replace("_", " ").title() # Remove zip extension 
         datafarm = process_zip(user_zip_path, filename)
     elif dropdown_selection is not None: 
-        set_progress((current_value, "Grabbing corpus..."))
+        set_progress((current_value, "This may take a few moments..", "Grabbing corpus..."))
         corpus_name = dropdown_selection
         datafarm = process_dropdown(dropdown_selection)
 
     current_value += 5
-    set_progress((current_value, "Processing corpus..."))
+    set_progress((current_value, "This may take a few moments..", "Processing corpus..."))
 
     # If instantiation returned an error code
     if type(datafarm) is list:
@@ -405,7 +600,7 @@ def pre_process_data(set_progress, n_clicks, dropdown_selection, user_zip_path, 
         return None, None, datafarm.corpus, None # Datafarm.corpus contains an error message
 
     current_value += 5
-    set_progress((current_value, "Cleaning corpus..."))
+    set_progress((current_value, "This may take a few moments..", "Cleaning corpus..."))
 
     old_stdout = sys.stdout
     # Capture stdout data from ConvoKit function & pass to loading bar
@@ -416,34 +611,32 @@ def pre_process_data(set_progress, n_clicks, dropdown_selection, user_zip_path, 
         sys.stdout = old_stdout
 
     current_value += 55
-    set_progress((current_value, "Calculating speaker statistics..."))
+    set_progress((current_value, "This may take a few moments..", "Calculating speaker statistics..."))
 
     speaker_df, speaker_time_df, speaker_meta_df = datafarm.create_speaker_dfs() 
     speaker_df = datafarm.clean_columns(speaker_df)
     speaker_time_df = datafarm.clean_columns(speaker_time_df)
 
     current_value += 10
-    set_progress((current_value, "Calculating group statistics..."))
+    set_progress((current_value, "This may take a few moments..", "Calculating group statistics..."))
 
     group_df, group_time_df, group_meta_df = datafarm.create_group_dfs(speaker_df, speaker_time_df)
     group_df = datafarm.clean_columns(group_df)
     group_time_df = datafarm.clean_columns(group_time_df)
 
     current_value += 10
-    set_progress((current_value, "Calculating utterance statistics..."))
+    set_progress((current_value, "This may take a few moments..", "Calculating utterance statistics..."))
 
     utt_df = datafarm.corpus.get_utterances_dataframe()
     utt_df = datafarm.format_utt_df(utt_df)
     utt_df = datafarm.clean_columns(utt_df)
 
     current_value += 10
-    set_progress((current_value, "Saving..."))
+    set_progress((current_value, "This may take a few moments..", "Saving..."))
 
     save_files(speaker_df, group_df, speaker_time_df, group_time_df, utt_df, speaker_meta_df, group_meta_df)
 
-    set_progress((100, "100%"))
-
-    return json.dumps(str(user_id)), json.dumps(str(corpus_name)), [''], '/overview'
+    return json.dumps(str(user_id)), json.dumps(str(corpus_name)), [''], f'/overview?corpus_id={str(user_id)}'
    
 
 

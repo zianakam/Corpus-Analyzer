@@ -1,5 +1,6 @@
 from dash import dcc, html, dash_table, Input, Output
 from datetime import timedelta
+from urllib.parse import parse_qs
 
 import dash_bootstrap_components as dbc
 import dash
@@ -25,8 +26,8 @@ feature_list = ["age of acquisition", "concreteness", "familiarity", "imageabili
                 "1st person start", "2nd person", "2nd person start", "indirect (greeting)",
                 "direct question", "direct start", "has positive", "has negative", "subjunctive", "indicative"]
 
-layout = html.Div(
-    children=[
+def layout(corpus_id=None):
+    return html.Div(children=[
         # Header
         html.Div(
             children=[
@@ -42,7 +43,7 @@ layout = html.Div(
                         children="Overview",
                         className="overview_button"
                     ),
-                    href='/overview'
+                    href=f"/overview?corpus_id={corpus_id}"
                 ),
                 html.Button(
                     children="Timeline",
@@ -53,10 +54,10 @@ layout = html.Div(
                         children="Comparison",
                         className="comparison_button"
                     ),
-                    href='/comparison'
+                    href=f"/comparison?corpus_id={corpus_id}"
                 )
             ],
-            className="nav"
+            className="page_nav"
         ),
 
         # Row Div
@@ -306,7 +307,7 @@ def get_default(radio_value, time, metadata):
     return df
 
  
-def get_df(jsonified_user_id, radio_value, time, metadata):
+def get_df(jsonified_user_id, radio_value, time, metadata, corpus_id=None):
     """
     Loads and returns the correct DataFrame according to the input values
 
@@ -314,18 +315,19 @@ def get_df(jsonified_user_id, radio_value, time, metadata):
     :param radio_value: The selected radio button value ("group" or "speaker")
     :param time: Whether or not the DataFrame includes time values (True or False)
     :param metadata: Whether or not the DataFrame includes metadata values (True or False)
+    :param corpus_id: The URL query
     :return: Selected DataFrame
     """
     df = pd.DataFrame()
     user_id = None
 
-    if jsonified_user_id is not None:
+    if corpus_id == 'sample':
+        df = get_default(radio_value, time, metadata)
+        return df
+    else:
         user_id = json.loads(jsonified_user_id)
 
-    if user_id is None: 
-        # Default dataset
-        df = get_default(radio_value, time, metadata)
-    elif radio_value == 'group' and not time and not metadata:
+    if radio_value == 'group' and not time and not metadata:
         df = pickle.loads(zlib.decompress(r.get(f"{user_id}_group_df")))
     elif radio_value == 'speaker' and not time and not metadata: 
         df = pickle.loads(zlib.decompress(r.get(f"{user_id}_speaker_df")))
@@ -367,16 +369,19 @@ def populate_line_subheader(radio_value):
     Input(component_id='jsonified_user_id', component_property='data'),
     Input(component_id='radio_buttons', component_property='value'),
     Input(component_id='line_graph_dropdown', component_property='value'),
+    Input(component_id='url', component_property='search')
 )
-def populate_line_dropdown(jsonified_user_id, radio_value, dropdown_value):
+def populate_line_dropdown(jsonified_user_id, radio_value, dropdown_value, search_str):
     """
     Populates the options for the line graph's id dropdown
 
     :param jsonified_user_id: The user session ID
     :param radio_value: The selected radio button value ("group" or "speaker")
+    :param search_str: The URL query
     :return: A list of id values
     """
-    df = get_df(jsonified_user_id, radio_value, True, False)
+    search_param = parse_qs(search_str.lstrip('?'))['corpus_id'][0] # Get Query parameter
+    df = get_df(jsonified_user_id, radio_value, True, False, search_param)
 
     if radio_value == 'speaker':
         options = list(set(df['speaker_id']))
@@ -402,8 +407,9 @@ def populate_line_dropdown(jsonified_user_id, radio_value, dropdown_value):
     Input(component_id='line_graph_dropdown', component_property='value'), 
     Input(component_id='line_graph_feature', component_property='value'), 
     Input(component_id='jsonified_user_id', component_property='data'),
+    Input(component_id='url', component_property='search')
 )
-def populate_line_table(radio_value, selected_id, selected_feat, jsonified_user_id):
+def populate_line_table(radio_value, selected_id, selected_feat, jsonified_user_id, search_str):
     """
     Populates the line graph
 
@@ -411,12 +417,15 @@ def populate_line_table(radio_value, selected_id, selected_feat, jsonified_user_
     :param selected_id: The speaker or conversation ID
     :param selected_feat: The linguistic feature
     :param jsonified_user_id: The user session ID
+    :param search_str: The URL query
     :return: A line graph
     """
     if selected_id is None or selected_feat is None:
         return go.Figure()
 
-    df = get_df(jsonified_user_id, radio_value, True, False)
+    search_param = parse_qs(search_str.lstrip('?'))['corpus_id'][0] # Get Query parameter
+
+    df = get_df(jsonified_user_id, radio_value, True, False, search_param)
     id_header = radio_value + '_id' # Either Group_ID or Speaker_ID
     selected_feat = selected_feat.replace(" ", "_")
     feat_df = df[[id_header, 'time', selected_feat]]
@@ -458,15 +467,19 @@ def populate_line_table(radio_value, selected_id, selected_feat, jsonified_user_
     Output(component_id='conversation_timeline_dropdown', component_property='value'),
     Input(component_id='jsonified_user_id', component_property='data'),
     Input(component_id='conversation_timeline_dropdown', component_property='value'),
+    Input(component_id='url', component_property='search')
 )
-def populate_timeline_dropdown(jsonified_user_id, dropdown_value):
+def populate_timeline_dropdown(jsonified_user_id, dropdown_value, search_str):
     """
     Populates the options for the timeline dropdown
 
     :param jsonified_user_id: The user session ID
+    :param dropdown_value: The dropdown value
+    :param search_str: The URL query
     :return: A list of conversation ids
     """
-    df = get_df(jsonified_user_id, 'group', True, False)
+    search_param = parse_qs(search_str.lstrip('?'))['corpus_id'][0] # Get Query parameter
+    df = get_df(jsonified_user_id, 'group', True, False, search_param)
     options = list(set(df['group_id']))
     options.sort()
 
@@ -542,11 +555,21 @@ def populate_timeline(selected_convo, jsonified_user_id):
     Output(component_id="series_error_message", component_property="children"),
     Output(component_id='series_error_message', component_property='style'),
     Input(component_id='jsonified_user_id', component_property='data'),
-    Input(component_id='radio_buttons', component_property='value'), 
+    Input(component_id='radio_buttons', component_property='value'),
+    Input(component_id='url', component_property='search') 
 )
-def display_error_message(jsonified_user_id, radio_value):
+def display_error_message(jsonified_user_id, radio_value, search_str):
+    """
+    Displays an error message when there is no time series data
+
+    :param jsonified_user_id: The user session ID
+    :param radio_value: The selected radio button value ("group" or "speaker")
+    :param search_str: The URL query
+    :return: An error message
+    """
     id = radio_value + '_id' # Either speaker_id or group_id
-    df = get_df(jsonified_user_id, radio_value, True, False)
+    search_param = parse_qs(search_str.lstrip('?'))['corpus_id'][0] # Get Query parameter
+    df = get_df(jsonified_user_id, radio_value, True, False, search_param)
     features = df.drop(['time', id], inplace=False, axis=1)
 
     if (features == 0).all(axis=None):
