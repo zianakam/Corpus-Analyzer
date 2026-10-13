@@ -10,7 +10,6 @@ import pickle
 import zlib
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 import string
 import contractions
 import re
@@ -40,6 +39,11 @@ def layout(corpus_id=None):
             ],
             className="page_header"
         ),
+
+        html.Div('View the linguistic features extracted by Corpus Analyzer.', 
+                style={'marginLeft': '2%', 'marginBottom': '1%', 'fontSize': '15px'},
+                className='feature_text'),
+
         # Nav
         html.Div(
             children=[
@@ -64,6 +68,9 @@ def layout(corpus_id=None):
             ],
             className="page_nav"
         ),
+
+        html.Hr(style={'height': '1px', 'border': '1px solid #344B69', 'margin': '0 2% 0 2%'}),
+        
         # Row Div
         html.Div(
             children=[
@@ -79,16 +86,21 @@ def layout(corpus_id=None):
                                         html.Span(
                                             "info",
                                             className="material-symbols-outlined info",
-                                            id='page_view_id'
+                                            id='page_view_info'
                                         ),
                                         dbc.Tooltip(
-                                            "View the page & visualizations according to either the speaker or group dataset",
-                                            target="page_view_id",
+                                            "Filter the page & visualizations according to either the speaker or group (conversation) dataset",
+                                            target="page_view_info",
                                             placement="top"
-                                        )
+                                        ),
                                         ],
                                     className="page_view_header",
                                 ),
+
+                                html.Div('Change the way you view the page.',
+                                        style={'marginBottom': '1%', 'fontSize': '15px'},
+                                        className='feature_text'),
+
                                 html.Div(
                                     children=[
                                         dcc.RadioItems(
@@ -100,17 +112,20 @@ def layout(corpus_id=None):
                                             inline=True,
                                             id='radio_buttons',
                                             inputStyle={"margin-right": "5px"}, # between the icon and the label
-                                            labelStyle={'display': 'inline-block', 'margin-right': '10px'} # between radio buttons
+                                            labelStyle={'display': 'inline-block', 'margin-right': '10px', 'color': 'white'} # between radio buttons
                                         ),
+
                                         dcc.Checklist(
                                             options=[
                                                 {'label': 'View corpus metadata', 'value': 'VCM'}
                                             ],
                                             value=[],
+                                            labelStyle={'color': 'white'},
                                             id='metadata_check'
                                         ),
                                         html.Span(
                                             "info",
+                                            style={'color': 'white'},
                                             className="material-symbols-outlined info",
                                             id='metadata_info'
                                         ),
@@ -119,7 +134,8 @@ def layout(corpus_id=None):
                                             "Prepended with the text 'meta.'.",
                                             target="metadata_info",
                                             placement="top"
-                                        )
+                                        ),
+
                                     ],
                                     className='page_view_selection'
                                 ),
@@ -131,20 +147,14 @@ def layout(corpus_id=None):
                             children=[
                                 html.Div(
                                     children=[
-                                        "Feature Correlations",
-                                        html.Span(
-                                            "info",
-                                            className="material-symbols-outlined info",
-                                            id='scatter_graph_info'
-                                        ),
-                                        dbc.Tooltip(
-                                            "Compare the correlation of features with a scatterplot",
-                                            target="scatter_graph_info",
-                                            placement="top"
-                                        ),
+                                        "Feature Correlations"
                                         ],
                                     className="page_view_header",
                                 ),
+
+                                html.Div('Plot feature scores on a scatterplot.',
+                                        style={'marginBottom': '1%', 'fontSize': '15px'},
+                                        className='feature_text'),
 
                                 html.Div(
                                     children=[
@@ -220,20 +230,13 @@ def layout(corpus_id=None):
                         children=[
                             html.Div(
                                 children=[
-                                    "Feature Dataset",
-                                    html.Span(
-                                        "info",
-                                        className="material-symbols-outlined info",
-                                        id='feature_dataset_info'
-                                    ),
-                                    dbc.Tooltip(
-                                        "The dataset of extracted linguistic features",
-                                        target="feature_dataset_info",
-                                        placement="top"
-                                    ),
+                                    "Feature Dataset"
                                 ],
                                 className='section_subheader'
                             ),
+
+                            html.Div('View a dataset of the features extracted.',
+                                    className='page_subtext'),
 
                             html.Div(
                                 children=[
@@ -246,10 +249,14 @@ def layout(corpus_id=None):
                                                     },
                                         style_cell={
                                             'textAlign': 'left',
-                                            'border': '1px solid rgb(180, 180, 180)'
+                                            'border': '1px solid rgb(180, 180, 180)',
+                                            'background': '#243653',
+                                            'color': 'white'
                                                     },
                                         style_header={
-                                            'background': 'rgb(240, 240, 240)',
+                                            'background': '#1F2E49',
+                                            'color': 'white',
+                                            'padding': '0 10px 0 10px',
                                         },
                                         sort_action="native"
                                     ),
@@ -265,20 +272,24 @@ def layout(corpus_id=None):
                         children=[
                             html.Div(
                                 children=[
-                                    "Individual Utterance View",
+                                    "Per-Utterance View",
                                     html.Span(
                                         "info",
                                         className="material-symbols-outlined info",
                                         id='utterance_view_info'
                                     ),
                                     dbc.Tooltip(
-                                        "View the features of an individual utterance. Highlighted text represent markers for a feature (limited to politeness features only).",
+                                        "Highlighted text represent markers for a feature (limited to politeness features only).",
                                         target="utterance_view_info",
                                         placement="top"
                                     ),
                                 ],
                                 className='utterance_subheader'
                             ),
+
+                            html.Div('View an individual utterance.',
+                                    style={'marginBottom': '1%', 'fontSize': '15px'},
+                                    className='feature_text'),
 
                             html.Div( 
                                 children=[
@@ -659,6 +670,24 @@ def populate_scatterplot(jsonified_user_id, radio_value, dropdown_x_value, dropd
         df, 
         x=dropdown_x_value, y=dropdown_y_value,
         color=dropdown_y_value, hover_data=hover_value
+    )
+
+    figure.update_layout(
+        xaxis=dict(
+            color='white'    
+        ),
+        yaxis=dict(
+            color='white'
+        ),
+        plot_bgcolor="#243653",
+        paper_bgcolor='#243653',
+    ),
+
+    figure.update_coloraxes(
+        colorbar=dict(
+            tickfont=dict(color="white"),
+            title_font=dict(color="white")
+        )
     )
     
 

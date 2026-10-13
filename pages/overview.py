@@ -40,6 +40,11 @@ def layout(corpus_id=None):
             ],
             className="page_header"
         ),
+
+        html.Div('View the linguistic features extracted by Corpus Analyzer.', 
+                 style={'marginLeft': '2%', 'marginBottom': '1%', 'fontSize': '15px'},
+                 className='feature_text'),
+
         # Nav
         html.Div(
             children=[
@@ -64,76 +69,58 @@ def layout(corpus_id=None):
             ],
             className="page_nav"
         ),
-        # Selected Corpus
+
+        html.Hr(style={'height': '1px', 'border': '1px solid #344B69', 'margin': '0 2% 0 2%'}),
+
+        # Summary Stats
+
         html.Div(
             children=[
-                html.Div(
-                    children=[
-                        "Corpus: ",
-                    ],
-                    id='corpus_annotation'
-                ),
-
                 html.Div(
                     children=[
                         html.Div(
-                            children=[""],
-                            id='selected_corpus'
+                            children=["Corpus"],
                         ),
-                        html.Span(
-                            "article",
-                            className='material-symbols-outlined article',
-                            id='article_icon'
+                        html.Div(
+                            children=["Number of Speakers"],
                         ),
+                        html.Div(
+                            children=["Number of Utterances"],
+                        ),
+                        html.Div(
+                            children=["Number of Conversations (Groups)"],
+                        ),
+
+                        html.Div(id='selected_corpus'),
+
+                        html.Div(
+                            id='no_of_speakers',
+                            className='summary_value'
+                        ),
+                        html.Div(
+                            id='no_of_utts',
+                            className='summary_value'
+                        ),
+                        html.Div(
+                            id='no_of_convos',
+                            className='summary_value'
+                        )    
                     ],
-                    id='corpus_input'
+                    id='summary_stats'
                 ),
-
-                dcc.Link(
-                    html.Button(
-                        "Change datasets",
-                        id='change_dataset_button'
-                    ),
-                    href='/'    
-                )
-
+                
             ],
-            id="corpus_view"
+            id="summary_block"
         ),
-        # Summary Stats
-        html.Div(
-            children=[
-                html.Div(
-                    children=["Number of Speakers"],
-                ),
-                html.Div(
-                    children=["Number of Utterances"],
-                ),
-                html.Div(
-                    children=["Number of Conversations (Groups)"],
-                ),
 
-                html.Div(
-                    id='no_of_speakers',
-                    className='summary_value'
-                ),
-                html.Div(
-                    id='no_of_utts',
-                    className='summary_value'
-                ),
-                html.Div(
-                    id='no_of_convos',
-                    className='summary_value'
-                ),
-            ],
-            id="summary_stats"
-        ),
         # Row Div
         html.Div(
             children=[ 
                 # Left Column
                 html.Div( 
                     children=[
+                    
+
                         html.Div(
                             children=[
                                 html.Div(
@@ -145,13 +132,16 @@ def layout(corpus_id=None):
                                             id='page_view_info'
                                         ),
                                         dbc.Tooltip(
-                                            "View the page & visualizations according to either the speaker or group dataset",
+                                            "Filter the page & visualizations according to either the speaker or group (conversation) dataset",
                                             target="page_view_info",
                                             placement="top"
                                         ),
                                         ],
                                     className="page_view_header",
                                 ),
+
+                                html.Div('Change the way you view the page.',
+                                        className='page_subtext'),
 
                                 html.Div(
                                     children=[
@@ -164,7 +154,7 @@ def layout(corpus_id=None):
                                             inline=True,
                                             id='radio_buttons',
                                             inputStyle={"margin-right": "5px"}, # between the icon and the label
-                                            labelStyle={'display': 'inline-block', 'margin-right': '10px'} # between radio buttons
+                                            labelStyle={'display': 'inline-block', 'margin-right': '10px', 'color': 'white'} # between radio buttons
                                         ),
 
                                         dcc.Checklist(
@@ -172,10 +162,12 @@ def layout(corpus_id=None):
                                                 {'label': 'View corpus metadata', 'value': 'VCM'}
                                             ],
                                             value=[],
+                                            labelStyle={'color': 'white'},
                                             id='metadata_check'
                                         ),
                                         html.Span(
                                             "info",
+                                            style={'color': 'white'},
                                             className="material-symbols-outlined info",
                                             id='metadata_info'
                                         ),
@@ -216,7 +208,7 @@ def layout(corpus_id=None):
                                     children=[                                
                                     html.Div(
                                         children=[
-                                            html.Div("Feature:"),
+                                            html.Div("Select a feature:", className='page_subtext'),
 
                                             dcc.Dropdown(
                                                 placeholder='Select a feature',
@@ -249,19 +241,12 @@ def layout(corpus_id=None):
                             html.Div(
                                 children=[
                                     "Feature Dataset",
-                                    html.Span(
-                                        "info",
-                                        className="material-symbols-outlined info",
-                                        id='feature_dataset_info'
-                                    ),
-                                    dbc.Tooltip(
-                                        "The dataset of extracted linguistic features",
-                                        target="feature_dataset_info",
-                                        placement="top"
-                                    ),
                                 ],
                                 className='section_subheader'
                             ),
+
+                            html.Div('View a dataset of the features extracted.',
+                                    className='page_subtext'),
 
                             html.Div(
                                 children=[
@@ -275,9 +260,13 @@ def layout(corpus_id=None):
                                         style_cell={
                                             'textAlign': 'left',
                                             'border': '1px solid rgb(180, 180, 180)',
+                                            'background': '#243653',
+                                            'color': 'white'
                                                     },
                                         style_header={
-                                            'background': 'rgb(240, 240, 240)',
+                                            'background': '#1F2E49',
+                                            'color': 'white',
+                                            'padding': '0 10px 0 10px',
                                         },
                                         sort_action="native"
                                     ),
@@ -292,21 +281,13 @@ def layout(corpus_id=None):
                         children=[
                             html.Div(
                                 children=[
-                                    "Feature Definitions",
-                                    html.Span(
-                                        "info",
-                                        className="material-symbols-outlined info",
-                                        id='definitions_view_info'
-                                    ),
-                                    dbc.Tooltip(
-                                        "View the definitions of the features extracted from your dataset. " \
-                                        "Select a category first.",
-                                        target="definitions_view_info",
-                                        placement="top"
-                                    ),
+                                    "Feature Definitions"
                                 ],
                                 id='definitions_info_subheader'
                             ),
+
+                            html.Div('View the definition of each feature sorted by category.',
+                                    className='page_subtext'),
 
                             html.Div("Feature Category: "),
 
@@ -317,7 +298,8 @@ def layout(corpus_id=None):
                                 multi=False,
                                 className='definitions_dropdown',
                                 id='definitions_category_list',
-                                searchable=True
+                                searchable=True,
+                                clearable=False
                             ),
 
                             html.Div(
@@ -336,11 +318,13 @@ def layout(corpus_id=None):
 
                                     dcc.Dropdown(
                                         placeholder='Select a feature',
+                                        value='please',
                                         options=[],
                                         multi=False,
                                         className='definitions_dropdown',
                                         id='definitions_feature_list',
-                                        searchable=True
+                                        searchable=True,
+                                        clearable=False
                                     ),
 
                                     html.Div(
@@ -586,6 +570,13 @@ def populate_box_plot(radio_value, selected_feat, jsonified_user_id, metadata, s
         selected_feat = selected_feat.replace(" ", "_")
 
     box_plot = px.box(df, y=selected_feat, points='all')
+    box_plot.update_layout(
+        plot_bgcolor="#243653",
+        paper_bgcolor='#243653',
+        yaxis=dict(
+            color='white'
+        )
+    )
 
     return box_plot
 
@@ -623,6 +614,9 @@ def populate_definitions_dropdown(category_value, feature_value):
     elif category_value == 'psycholinguistic features':
         options = ['age of acquisition', 'concreteness', 'familiarity', 'imageability']
 
+    if feature_value == None:
+        feature_value = options[0]
+        
     return options, feature_value
 
 

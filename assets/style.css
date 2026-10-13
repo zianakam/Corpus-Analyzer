@@ -19,7 +19,6 @@
 body {
     background: #324A5F;
     background: radial-gradient(circle, rgba(50, 74, 95, 1) 0%, rgba(27, 42, 65, 1) 35%, rgba(12, 24, 33, 1) 100%);
-    padding-bottom: 45px;
 }
 
 ul {
@@ -61,6 +60,7 @@ a:visited {
     font-size: 20px;
     margin-right: 3px;
     vertical-align: -4px;
+    cursor: pointer;
 }
 
 .info {
@@ -70,46 +70,41 @@ a:visited {
 }
 
 /* Create two equal columns that floats next to each other */
-.column_a {
-    float: left;
-    height: 550px;
-    width: 50%;
-    margin-top: 15px;
-    margin-bottom: 75px;
+.row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 15px 24px;
+    align-items: start;
 }
 
+.column_a,
 .column_b {
-    float: left;
-    height: 550px;
-    width: 50%;
+    min-width: 0;
+    height: auto;
     margin-top: 15px;
-    margin-bottom: 75px;
+    margin-bottom: 0;
 }
-  
-/* Clear floats after the columns */
-.row:after {
-    content: "";
-    display: table;
-    clear: both;
-}
+
 
 .page_nav {
     margin-left: 2%;
+    margin-bottom: 1%;
     background: none;
+    border: 1px solid #344B69;
+    width: fit-content;
+    border-radius: 10px;
 }
 
 .overview_button {
     border: none;
     background: none;
     color: white;
-    border-bottom: 1px solid white;
 }
 
 .timeline_button {
     border: none;
     background: none;
     color: white;
-    border-bottom: 1px solid white;
     margin-left: 15px;
 }
 
@@ -117,28 +112,29 @@ a:visited {
     border: none;
     background: none;
     color: white;
-    border-bottom: 1px solid white;
     margin-left: 15px;
 }
 
 .page_view {
-    background: white;
     margin-left: 4%;
     margin-bottom: 2%;
     padding: 0 2% 2% 2%;
     border-style: solid;
     border-radius: 8px;
     border-color: rgba(50, 74, 95, 1);
+    background: #243653;
 }
 
 .page_view_header {
     font-size: 18px;
     margin-bottom: 5px;
     margin-top: 7px;
+    color: white;
 }
 
 .page_view_selection {
     display: flex;
+    white-space: nowrap;    
 }
 
 #metadata_check {
@@ -154,7 +150,8 @@ a:visited {
 .section_subheader {
     font-size: 18px;
     padding-top: 7px;
-    padding-left: 1%;
+    margin-bottom: 5px;
+    color: white;
 }
 
 .graph_dropdown {
@@ -163,9 +160,10 @@ a:visited {
     border-style: solid;
     border-radius: 8px;
     border-color: rgba(50, 74, 95, 1);
-    background: white;
+    background: #243653;
     padding-left: 2%;
     padding-right: 2%;
+    color: white;
 }
 
 .dropdown_row {
@@ -185,19 +183,31 @@ a:visited {
 }
 
 #table {
-    background: white;
     padding-top: 3px;
-    padding-left: 8px;
+    padding-left: 10px;
+    padding-right: 8px;
     margin-right: 4%;
     margin-bottom: 2%;
     border-style: solid;
     border-radius: 8px;
     border-color: rgba(50, 74, 95, 1);
+    background: #243653;
+    color: white;
+}
+
+.page_subtext {
+    color: #91A2B1;
+    font-size: 15px;
+    margin-bottom: 1%;
 }
 
 /***************/
 /** Home Page **/
 /***************/
+
+#landing_page {
+    padding-bottom: 40px;
+}
 
 .subtitle {
     color: white;
@@ -379,7 +389,6 @@ a:visited {
 
 #progress_subtext {
     color: #91A2B1;
-    margin-bottom: 15px;
     font-size: 13px;
 }
 
@@ -388,71 +397,43 @@ a:visited {
 /*******************/
 
 .overview_page {
-    padding-bottom: 15%;
+    min-height: 100vh;
+    height: auto;
+    padding-bottom: 40px;
+    box-sizing: border-box;
+}
+
+.overview_page .page_nav {
+    padding-right: 15px;
 }
 
 .overview_page .overview_button {
-    background: #4F7DBB;
-    border-radius: 5px;
-}
-
-#corpus_view {
-    color: black;
-    margin: 15px 25px 0px 25px;
-    background: white;
-    padding: 20px 0px 20px 80px;
-    border-style: solid;
-    border-radius: 8px;
-    border-color: rgba(50, 74, 95, 1);
-}
-
-#corpus_annotation {
-    display: inline;
-    font-size: 20px;
-}
-
-#corpus_input {
-    display: inline;
-    padding: 9px;
-    background-color: #4F7DBB;
-    border-radius: 12px;
+    padding: 2px 15px 2px 15px;
+    background-color: #5967E8;
     color: white;
-    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
-    vertical-align: 3px;
-    margin-left: 2px;
+    border-radius: 10px;
+    border: 2px solid #4251d8;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px, rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
 }
 
 #selected_corpus {
     display: inline;
 }
 
-#article_icon {
-    padding-left: 3px;
-    vertical-align: -5px;
-}
-
-#change_dataset_button {
-    float: right;
-    margin-right: 30px;
-    box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+#summary_block {
     color: white;
-    background-color: #3e5c76;
-    border-radius: 15px;
-    border: white 1px solid;
-    padding: 5px 12px 5px 12px;  
-}
-
-#summary_stats {
-    color: black;
-    margin: 15px 25px 0px 25px;
-    display: grid;
-    grid-template-columns: repeat(3, 33%);
+    margin: 1% 2% 0% 2%;
     text-align: center;
-    background: white;
+    background: #243653;
     padding: 1%;
     border-style: solid;
     border-radius: 8px;
     border-color: rgba(50, 74, 95, 1);
+}
+
+#summary_stats {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr 1fr;
 }
 
 .summary_value {
@@ -469,17 +450,19 @@ a:visited {
     margin-top: 6px;
     margin-bottom: 15px;
     margin-right: 5%;
+    color: black;
 }
 
 #feature_definitions {
-    color: black;
-    background: white;
-    border-style: solid;
+    color: white;
+    background: #243653;
     border-radius: 8px;
     border-color: rgba(50, 74, 95, 1);
+    border-style: solid;
+    border-radius: 8px;
     margin-right: 4%;
-    padding: 5px 18px 20px 16px;
-    height: 475px;
+    padding: 5px 18px 15px 16px;
+    height: fit-content;
     display: flex;
     flex-direction: column;
     gap: 15px;
@@ -494,10 +477,11 @@ a:visited {
 .definitions_dropdown {
     font-size: 16px;
     padding-bottom: -5px;
+    color: black;
 }
 
 .definitions_subheader {
-    font-weight: bold;
+    font-weight: 500;
     text-align: center;
 }
 
@@ -520,9 +504,22 @@ a:visited {
 /** Timeline Page **/
 /********************/
 
+.timeline_page {
+    padding-bottom: 40px;
+}
+
+.timeline_page .page_nav {
+    padding-right: 15px;
+    padding-left: 15px;
+}
+
 .timeline_page .timeline_button {
-    background: #4F7DBB;
-    border-radius: 5px;
+    padding: 2px 15px 2px 15px;
+    background-color: #5967E8;
+    color: white;
+    border-radius: 10px;
+    border: 2px solid #4251d8;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px, rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
 }
 
 #line_graph {
@@ -534,20 +531,22 @@ a:visited {
 #line_graph_dropdown {
     margin-bottom: 15px;
     margin-top: 5px;
+    color: black
 }
 
 #line_graph_feature {
     margin-top: 5px;
+    color: black;
 }
 
 .conversation_timeline_view {
-    background: white;
-    width: 599px;
+    margin-right: 4%;
     margin-bottom: 2%;
     padding: 0 2% 2% 2%;
     border-style: solid;
     border-radius: 8px;
     border-color: rgba(50, 74, 95, 1);
+    background: #243653;
 }
 
 #conversation_timeline_dropdown {
@@ -561,16 +560,27 @@ a:visited {
 
 #series_error_message {
     display: hidden;
-    padding-bottom: 10px;
 }
 
 /********************/
 /** Comparsion Page **/
 /********************/
 
+.comparison_page {
+    padding-bottom: 40px;
+}
+
+.comparison_page .page_nav {
+    padding-left: 15px;
+}
+
 .comparison_page .comparison_button {
-    background: #4F7DBB;
-    border-radius: 5px;
+    padding: 2px 15px 2px 15px;
+    background-color: #5967E8;
+    color: white;
+    border-radius: 10px;
+    border: 2px solid #4251d8;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px, rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
 }
 
 #scatter_plot {
@@ -585,21 +595,28 @@ a:visited {
 
 #scatter_x_dropdown {
     margin-bottom: 20px;
+    color: black;
+}
+
+#scatter_y_dropdown {
+    color: black;
 }
 
 #scatter_hover_dropdown {
     margin-bottom: 17px;
+    color: black;
 }
 
 .utterance_subheader {
     padding-top: 8px;
-    padding-bottom: 2px;
     font-size: 18px;
 }
 
 .utterance_view {
-    background: white;
-    padding: 5px 20px 35px 20px;
+    border-color: rgba(50, 74, 95, 1);
+    background: #243653;
+    color: white;
+    padding: 5px 20px 25px 15px;
     margin-right: 23px;
     border-style: solid;
     border-radius: 8px;
@@ -643,8 +660,8 @@ a:visited {
 
 #utterance_metadata_block {
     padding-top: 10px;
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 #utterance_id_dropdown {

@@ -35,6 +35,11 @@ def layout(corpus_id=None):
             ],
             className="page_header"
         ),
+
+        html.Div('View the linguistic features extracted by Corpus Analyzer.', 
+                style={'marginLeft': '2%', 'marginBottom': '1%', 'fontSize': '15px'},
+                className='feature_text'),
+
         # Nav
         html.Div(
             children=[
@@ -60,12 +65,15 @@ def layout(corpus_id=None):
             className="page_nav"
         ),
 
+        html.Hr(style={'height': '1px', 'border': '1px solid #344B69', 'margin': '0 2% 0 2%'}),
+
         # Row Div
         html.Div(
             children=[
                 # Left Column
                 html.Div(
                     children=[
+
                         html.Div(
                             children=[
                                 html.Div(
@@ -74,16 +82,21 @@ def layout(corpus_id=None):
                                         html.Span(
                                             "info",
                                             className="material-symbols-outlined info",
-                                            id='page_view_id'
+                                            id='page_view_info'
                                         ),
                                         dbc.Tooltip(
-                                            "View the page & visualizations according to either the speaker or group dataset",
-                                            target="page_view_id",
+                                            "Filter the page & visualizations according to either the speaker or group (conversation) dataset",
+                                            target="page_view_info",
                                             placement="top"
-                                        )
+                                        ),
                                         ],
                                     className="page_view_header",
                                 ),
+
+                                html.Div('Change the way you view the page.',
+                                        style={'marginBottom': '1%', 'fontSize': '15px'},
+                                        className='feature_text'),
+
                                 html.Div(
                                     children=[
                                         dcc.RadioItems(
@@ -95,16 +108,30 @@ def layout(corpus_id=None):
                                             inline=True,
                                             id='radio_buttons',
                                             inputStyle={"margin-right": "5px"}, # between the icon and the label
-                                            labelStyle={'display': 'inline-block', 'margin-right': '10px'} # between radio buttons
+                                            labelStyle={'display': 'inline-block', 'margin-right': '10px', 'color': 'white'} # between radio buttons
                                         ),
+
                                         dcc.Checklist(
                                             options=[
                                                 {'label': 'View corpus metadata', 'value': 'VCM'}
                                             ],
                                             value=[],
-                                            id='metadata_check',
-                                            style={'display': 'None'} # Integrated but hidden to avoid callbacks firing for a non-existent object error
-                                        )
+                                            labelStyle={'color': 'white'},
+                                            id='metadata_check'
+                                        ),
+                                        html.Span(
+                                            "info",
+                                            style={'color': 'white'},
+                                            className="material-symbols-outlined info",
+                                            id='metadata_info'
+                                        ),
+                                        dbc.Tooltip(
+                                            "View the default metadata features associated with a Corpus. " \
+                                            "Prepended with the text 'meta.'.",
+                                            target="metadata_info",
+                                            placement="top"
+                                        ),
+
                                     ],
                                     className='page_view_selection'
                                 ),
@@ -124,13 +151,16 @@ def layout(corpus_id=None):
                                             id='line_graph_info'
                                         ),
                                         dbc.Tooltip(
-                                            "View the way feature scores change over the course of the conversation (averaged & split into 5 turns)",
+                                            "View the way feature scores change over the course of the conversation.",
                                             target="line_graph_info",
                                             placement="top"
                                         ),
                                         ],
                                     className="page_view_header",
                                 ),
+
+                                html.Div('Plot the conversation over time.',
+                                        className='page_subtext'),
 
                                 html.Div(
                                     children=[
@@ -200,13 +230,16 @@ def layout(corpus_id=None):
                                         id='feature_dataset_info'
                                     ),
                                     dbc.Tooltip(
-                                        "The dataset of extracted linguistic features, over time (evenly split into 5 turns)",
+                                        "The conversation is split evenly into 5 turns using timestamp data. The feature scores below are the average score recorded at each turn.",
                                         target="feature_dataset_info",
                                         placement="top"
                                     ),
                                 ],
                                 className='section_subheader'
                             ),
+
+                            html.Div('View a dataset of the features extracted, over the course of the conversation.',
+                                    className='page_subtext'),
 
                             html.Div(
                                 children=[
@@ -219,10 +252,14 @@ def layout(corpus_id=None):
                                                     },
                                         style_cell={
                                             'textAlign': 'left',
-                                            'border': '1px solid rgb(180, 180, 180)'
+                                            'border': '1px solid rgb(180, 180, 180)',
+                                            'background': '#243653',
+                                            'color': 'white'
                                                     },
                                         style_header={
-                                            'background': 'rgb(240, 240, 240)',
+                                            'background': '#1F2E49',
+                                            'color': 'white',
+                                            'padding': '0 10px 0 10px',
                                         },
                                         sort_action="native"
                                     ),
@@ -253,7 +290,10 @@ def layout(corpus_id=None):
                                 className="page_view_header",
                             ),
 
-                            html.Span("Group ID:"),
+                            html.Div('View a dataset of the features extracted, over the course of the conversation.',
+                                                                className='page_subtext'),
+
+                            html.Span("Group ID:", style={'color': 'white'}),
 
                             dcc.Dropdown(
                                 placeholder='Select a group',
@@ -457,7 +497,14 @@ def populate_line_table(radio_value, selected_id, selected_feat, jsonified_user_
         margin=dict(l=20, r=20, t=20, b=20),
         xaxis_title="Time (Turns)",
         yaxis_title=selected_feat.replace("_", " ").capitalize(),
+        plot_bgcolor="#243653",
+        paper_bgcolor='#243653',
+        yaxis=dict(
+            color='white'
+        ),
+        legend=dict(font=dict(color='white'))
     )
+
 
     return line_graph
 
@@ -545,8 +592,15 @@ def populate_timeline(selected_convo, jsonified_user_id):
     fig.update_layout(
         xaxis=dict(
             title_text="Time",
-            tickformat="%H:%M:%S.%L"    
-        )
+            tickformat="%H:%M:%S.%L",
+            color='white'    
+        ),
+        yaxis=dict(
+            color='white'
+        ),
+        legend=dict(font=dict(color='white')),
+        plot_bgcolor="#243653",
+        paper_bgcolor='#243653',
     )
 
     return fig
@@ -576,6 +630,12 @@ def display_error_message(jsonified_user_id, radio_value, search_str):
         return "Warning: Time series information wasn\'t calculated. " \
         "Graphs on this page won\'t appear as expected. " \
         "If you\'d like to calculate time series data, please add 'timestamp' " \
-        "metadata to the utterances in your dataset and ensure it\'s properly formatted. ", {'display': 'block'}
+        "metadata to the utterances in your dataset. ", {'display': 'block',
+                                                        'margin-bottom': '10px',
+                                                        'padding': '6px',
+                                                        'border': '2px solid #FFB938',
+                                                        'border-radius': '10px',
+                                                        'font-size': '13px'
+                                                        }
 
     return '', {}

@@ -46,9 +46,8 @@ def get_corpus_list():
     return list
 
 
-layout = html.Div(
-    children=[
-
+layout = html.Div(children=[
+    html.Div(children=[
         html.H1(
             children=[
                 'Corpus ',
@@ -68,7 +67,7 @@ layout = html.Div(
             children=[
                 html.Div(
                     children=[
-                        "Corpus analyzer is an interactive analytics dashboard with live graphing. "
+                        "Corpus Analyzer is an interactive analytics dashboard with live graphing. "
                         "It automates the process of extracting and visualizing individual "
                         "linguistic features (or characteristics) of large text datasets, while providing "
                         "a no-code solution for natural language processing."
@@ -263,8 +262,7 @@ layout = html.Div(
                                 html.Span(
                                     "info",
                                     className="material-symbols-outlined info",
-                                    id='landing_info',
-                                    style={'cursor': 'pointer'}
+                                    id='landing_info'
                                 ),
                                 dbc.Tooltip(
                                     dcc.Markdown("Upload a .zip file\n containing a single folder\n with your corpus.\n " \
@@ -344,9 +342,9 @@ layout = html.Div(
                 html.Div(id='progress_subtext')
             ],
             id='progress_block'
-        ),
-
-    ],
+        )],
+    )],
+    id='landing_page'
 )
 
 # Functions 
