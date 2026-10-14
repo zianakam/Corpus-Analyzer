@@ -1,4 +1,4 @@
-from dash import dcc, html, dash_table, Input, Output
+from dash import dcc, html, dash_table, Input, Output, State, Patch
 from dash.exceptions import PreventUpdate
 from urllib.parse import parse_qs
 
@@ -348,28 +348,9 @@ def layout(corpus_id=None):
                                 id='utterance_metadata_subheader'
                             ),
 
-                            html.Div(
-                                children=[
-                                    html.Div(  
-                                        id='utterance_speaker'
-                                    ), 
-
-                                    html.Div(  
-                                        id='utterance_group'
-                                    ), 
-
-                                    html.Div(
-                                        id='utterance_timestamp'
-                                    ),
-
-                                    html.Div(  
-                                        id='utterance_reply_to'
-                                    ),
-                                ],
-                                id='utterance_metadata_block'
-                            ) 
                         ],
-                        className='utterance_view'
+                        className='utterance_view',
+                        id='utterance_view'
                     ), 
                     
                     ],
@@ -523,18 +504,16 @@ def populate_utterance_dropdowns(jsonified_user_id):
 
 @dash.callback(
     Output(component_id='utterance_text', component_property='children'),
-    Output(component_id='utterance_speaker', component_property='children'),
-    Output(component_id='utterance_group', component_property='children'),
-    Output(component_id='utterance_timestamp', component_property='children'),
-    Output(component_id='utterance_reply_to', component_property='children'),
+    Output(component_id='utterance_view', component_property='children'),
     Output(component_id='utterance_feature_subheader', component_property='children'),
     Output(component_id='utterance_feature_score', component_property='children'),
     Input(component_id='jsonified_user_id', component_property='data'),
     Input(component_id='utterance_id_dropdown', component_property='value'),
     Input(component_id='utterance_feature_dropdown', component_property='value'),
+    State(component_id='utterance_view', component_property='children'),
     prevent_initial_call=True,
 )
-def populate_utterance_data(jsonified_user_id, utt_id, feature):
+def populate_utterance_data(jsonified_user_id, utt_id, feature, utterance_view):
     """
     Populates the utterance table with relevant values
     
@@ -562,24 +541,39 @@ def populate_utterance_data(jsonified_user_id, utt_id, feature):
         utt_df = pd.read_csv('default_datasets/default_utt.csv')
         utt_df = utt_df.set_index('id')
 
-    utt_df['text'] = utt_df['text'].astype(str)
+    # Create divs
+    block = html.Div(children=[], id='utterance_metadata_block')
+    speaker = html.Div(children=['Speaker: '], id='utterance_speaker') 
+    group = html.Div(children=['Group: '], id='utterance_group') 
+    timestamp = html.Div(children=['Timestamp: '], id='utterance_timestamp') 
+    reply_to = html.Div(children=['Reply To: '], id='utterance_reply_to') 
 
+    utt_df['text'] = utt_df['text'].astype(str)
     row = utt_df.loc[utt_id]
-    
     text = grab_markers(row, feature.replace(" ", "_"))
-    speaker = 'Speaker: ' + str(row['speaker']) 
-    group = 'Group: ' + str(row['conversation_id'])
-    timestamp = 'Timestamp: ' + str(row['timestamp']) 
-    reply_to = ''
     feat_score = f'{string.capwords(feature)} Score' 
     value = str(row[feature.replace(" ", "_")])
 
-    if str(row['reply_to']) != 'nan' and str(row['reply_to']) != '<NA>':
-        reply_to = 'Reply To: ' + str(row['reply_to'])
-    else: 
-        reply_to = 'Reply To: N/A'
+    # Nest divs (styling purposes -- need to be nested to visually stack output in four columns)
+    speaker.children.append(html.Div(str(row['speaker']), id='speaker_value'))
+    group.children.append(html.Div(str(row['conversation_id']), id='group_value'))
+    timestamp.children.append(html.Div(str(row['timestamp']), id='timestamp_value'))
 
-    return text, speaker, group, timestamp, reply_to, feat_score, value
+    if str(row['reply_to']) != 'nan' and str(row['reply_to']) != '<NA>':
+        reply_to.children.append(html.Div(str(row['reply_to']), id='reply_to_value'))
+    else: 
+        reply_to.children.append(html.Div('N/A', id='reply_to_value'))
+
+    # Append nested divs to overarching block
+    block.children.append(speaker)
+    block.children.append(group)
+    block.children.append(timestamp)
+    block.children.append(reply_to)
+    
+    patched_div = Patch()
+    patched_div.append(block)
+
+    return text, patched_div, feat_score, value
 
 
 @dash.callback(

@@ -661,7 +661,8 @@ a:visited {
 #utterance_metadata_block {
     padding-top: 10px;
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(4, 150px);
+    padding-left: 15px;
 }
 
 #utterance_id_dropdown {
