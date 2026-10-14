@@ -2,10 +2,9 @@
 
 # Corpus Analyzer
 
+### An NLP Dashboard 
 
-### Conversational Dynamics & Linguistic Feature Exploration
-
-*A web-based analytical platform for loading, preprocessing, and visualizing conversational corpora through ConvoKit.*
+*A web-based analytical platform for analzing and visualizing conversational corpora through ConvoKit.*
 
 <br>
 
@@ -21,11 +20,11 @@
 
 ---
 
-## ✨ About The Project
+#### <div style="color: #555555; text-align: center;">About The Project</div>
 
 Corpus Analyzer is an interactive dashboard built to streamline the exploration of conversational datasets without requiring direct scripting or notebook-based workflows.
 
-The application combines **ConvoKit corpus pre-processing**, **linguistic feature extraction**, and **interactive visual analytics** into a single GUI-driven environment where users can:
+The application combines **ConvoKit corpus processing**, **linguistic feature extraction**, and **interactive visual analytics** into a single GUI environment where users can:
 
 - load conversational corpora from [Convokit's dataset library](https://convokit.cornell.edu/datasets.html),
 - upload [custom corpora](https://github.com/CornellNLP/ConvoKit/blob/master/examples/corpus_from_pandas.ipynb) in ConvoKit format,
@@ -36,25 +35,11 @@ The application combines **ConvoKit corpus pre-processing**, **linguistic featur
 
 This project was designed to bridge the gap between traditional NLP pre-processing pipelines and researcher-friendly exploratory analysis.
 
----
-
-## 🌐 Live Deployment
+<br>
 
 The application is deployed and publicly accessible here:
 
-[Launch Corpus Analyzer](https://corpus-analyzer.onrender.com/)
+[Launch Corpus Analyzer](https://corpus-analyzer-production.up.railway.app/)
 
----
-
-## 🛠 Built With
-
-- **Python**
-- **Dash / Plotly**
-- **Pandas**
-- **NumPy**
-- **ConvoKit**
-- **SciKit-Learn**
-- **NLTK**
-- **Redis**
 
 
