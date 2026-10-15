@@ -348,9 +348,10 @@ def layout(corpus_id=None):
                                 id='utterance_metadata_subheader'
                             ),
 
+                            html.Div(id='utterance_values')
+
                         ],
-                        className='utterance_view',
-                        id='utterance_view'
+                        className='utterance_view'
                     ), 
                     
                     ],
@@ -504,16 +505,15 @@ def populate_utterance_dropdowns(jsonified_user_id):
 
 @dash.callback(
     Output(component_id='utterance_text', component_property='children'),
-    Output(component_id='utterance_view', component_property='children'),
+    Output(component_id='utterance_values', component_property='children'),
     Output(component_id='utterance_feature_subheader', component_property='children'),
     Output(component_id='utterance_feature_score', component_property='children'),
     Input(component_id='jsonified_user_id', component_property='data'),
     Input(component_id='utterance_id_dropdown', component_property='value'),
     Input(component_id='utterance_feature_dropdown', component_property='value'),
-    State(component_id='utterance_view', component_property='children'),
     prevent_initial_call=True,
 )
-def populate_utterance_data(jsonified_user_id, utt_id, feature, utterance_view):
+def populate_utterance_data(jsonified_user_id, utt_id, feature):
     """
     Populates the utterance table with relevant values
     
@@ -569,11 +569,8 @@ def populate_utterance_data(jsonified_user_id, utt_id, feature, utterance_view):
     block.children.append(group)
     block.children.append(timestamp)
     block.children.append(reply_to)
-    
-    patched_div = Patch()
-    patched_div.append(block)
 
-    return text, patched_div, feat_score, value
+    return text, block, feat_score, value
 
 
 @dash.callback(
